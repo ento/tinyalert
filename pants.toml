@@ -1,0 +1,16 @@
+[GLOBAL]
+pants_version = "2.15.0"
+backend_packages = [
+  "pants.backend.python",
+  "pants.backend.python.lint.black",
+]
+
+[python]
+interpreter_constraints = [">=3.8,<4"]
+enable_resolves = true
+
+[pytest]
+lockfile = "3rdparty/python/pytest.lock"
+extra_requirements.add = [
+  "pytest-freezer"
+]

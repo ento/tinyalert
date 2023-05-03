@@ -1,0 +1,6 @@
+*.pyc
+__pycache__
+/.pants.*
+/.pids
+/.direnv/
+db.sqlite

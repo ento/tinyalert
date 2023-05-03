@@ -1,0 +1,3 @@
+[metrics.critical]
+command = "cat integration/critical.txt"
+absolute_max = 1

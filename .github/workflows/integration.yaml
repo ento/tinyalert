@@ -1,0 +1,65 @@
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  install-and-use:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: init pants
+        uses: pantsbuild/actions/init-pants@main
+        with:
+          gha-cache-key: cache0
+          named-caches-hash: ${{ hashFiles('3rdparty/python/*.lock') }}
+      - run: |
+          pants package ::
+      - name: run action
+        uses: ./
+        with:
+          install: true
+      - name: assert
+        run: |
+          tinyalert --help
+  measure-and-report:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - config-path: kitchen-sink.toml
+            measure: 'simple'
+            expected-outcome: 'ok'
+          - config-path: critical.toml
+            measure: 'critical'
+            expected-outcome: 'alert'
+    steps:
+      - uses: actions/checkout@v3
+      - name: init pants
+        uses: pantsbuild/actions/init-pants@main
+        with:
+          gha-cache-key: cache0
+          named-caches-hash: ${{ hashFiles('3rdparty/python/*.lock') }}
+      - run: |
+          pants package ::
+      - name: run action
+        uses: ./
+        id: act
+        continue-on-error: true
+        with:
+          db-path: db.sqlite
+          config-path: integration/${{ matrix.config-path }}
+          measure: ${{ matrix.measure }}
+          report: true
+      - name: assert
+        shell: python
+        env:
+          outcome: ${{ steps.act.outputs.outcome }}
+          report: ${{ steps.act.outputs.report }}
+          expected_outcome: ${{ matrix.expected-outcome }}
+        run: |
+          import os
+          assert os.environ["outcome"] == os.environ["expected_outcome"], f"{os.environ['outcome']} != {os.environ['expected_outcome']}:\n{os.environ['report']}"
+          assert os.environ["report"]

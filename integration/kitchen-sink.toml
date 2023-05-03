@@ -1,0 +1,3 @@
+[metrics.simple]
+command = "cat integration/kitchen-sink-simple.txt"
+absolute_max = 10

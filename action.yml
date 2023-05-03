@@ -1,0 +1,88 @@
+name: 'tinyalert'
+description: 'Record and alert on metrics completely offline'
+inputs:
+  measure:
+    description: 'Name of metrics defined in config to measure'
+    required: false
+  report:
+    description: 'Whether to report metric statuses'
+    type: boolean
+    required: false
+    default: false
+  install:
+    description: 'Make tinyalert CLI available as a command'
+    type: boolean
+    required: false
+    default: false
+  report-format:
+    description: 'Output format of report'
+    required: true
+    default: 'markdown'
+  db-path:
+    description: 'Path to SQLite database to save metrics data'
+    required: true
+  config-path:
+    description: 'Path to TOML config that specifies metrics details'
+    required: true
+outputs:
+  outcome:
+    description: 'Report outcome: ok or alert'
+    value: "${{ steps.report.outputs.outcome }}"
+  report:
+    description: 'Report content'
+    value: "${{ steps.report.outputs.report }}"
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        import os
+        import textwrap
+        from pathlib import Path
+
+        action_path = Path(os.environ["action_path"])
+        bin_dir = action_path / "bin"
+        bin_dir.mkdir(parents=True, exist_ok=True)
+        bin_path = bin_dir / "tinyalert"
+        app_path = action_path / "dist" / "app.pex"
+        bin_path.write_text(textwrap.dedent(f"""
+        #!/usr/bin/env bash
+        exec "{app_path}" "$@"
+        """))
+        bin_path.chmod(0o755)
+
+        with open(os.environ["GITHUB_PATH"], "a", encoding="utf8", newline="") as f:
+          f.write(f"{bin_dir}{os.linesep}")
+      shell: python
+      env:
+        action_path: ${{ github.action_path }}
+      if: ${{ inputs.install }}
+    - run: |
+        "${{ github.action_path }}dist/app.pex" "${{ inputs.db-path }}" measure --config "${{ inputs.config-path }}" --metrics "${{ inputs.measure }}"
+      shell: bash
+      if: ${{ inputs.measure }}
+    - run: |
+          import os
+          import os.path
+          import subprocess
+          from uuid import uuid4
+
+          script_path = os.path.join(os.environ["GITHUB_ACTION_PATH"], "dist/app.pex")
+          proc = subprocess.run([
+              script_path,
+              os.environ["DB_PATH"],
+              "report",
+              "--format",
+              os.environ["REPORT_FORMAT"],
+          ], capture_output=True, text=True)
+          output = proc.stdout
+          outcome = "ok" if proc.returncode == 0 else "alert"
+          eof = uuid4()
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf8", newline="") as f:
+              f.write(f"report<<{eof}{os.linesep}{output}{os.linesep}{eof}{os.linesep}")
+              f.write(f"outcome<<{eof}{os.linesep}{outcome}{os.linesep}{eof}{os.linesep}")
+      env:
+        DB_PATH: ${{ inputs.db-path }}
+        REPORT_FORMAT: ${{ inputs.report-format }}
+      shell: python
+      id: report
+      if: ${{ inputs.report }}
