@@ -146,7 +146,7 @@ class ReportData(BaseModel):
     @cached_property
     def violates_relative_limits(self) -> bool:
         if self.violates_relative_max or self.violates_relative_min:
-            if self.ignore != IgnoreType.relative:
+            if self.ignore is None:
                 return True
         return False
 
