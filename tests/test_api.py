@@ -1,5 +1,7 @@
 import datetime
 
+import pytest
+
 from tinyalert import api
 
 
@@ -13,6 +15,14 @@ def test_push_with_all_fields(db):
     assert p.measure_source == "source"
     assert p.diffable_content == "diff"
     assert p.url == "test"
+
+
+@pytest.mark.parametrize("source,method,expected", [("test.md", "file", "hello"), ("cat test.md", "exec", "hello")])
+def test_eval_source(monkeypatch, tmp_path, source, method, expected):
+    tmp_path.joinpath("test.md").write_text("hello")
+    monkeypatch.chdir(tmp_path)
+
+    assert api.eval_source(source, method) == expected
 
 
 def test_combine_with_minimum_data(db, create_db, freezer):
