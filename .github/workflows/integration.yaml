@@ -63,3 +63,8 @@ jobs:
           import os
           assert os.environ["outcome"] == os.environ["expected_outcome"], f"{os.environ['outcome']} != {os.environ['expected_outcome']}:\n{os.environ['report']}"
           assert os.environ["report"]
+      - name: prune
+        uses: ./
+        with:
+          db-path: db.sqlite
+          prune: 1

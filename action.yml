@@ -9,6 +9,11 @@ inputs:
     type: boolean
     required: false
     default: false
+  prune:
+    description: 'Prune measured values while keeping the specified number of values per metric'
+    type: number
+    default: null
+    required: false
   install:
     description: 'Make tinyalert CLI available as a command'
     type: boolean
@@ -34,7 +39,8 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - run: |
+    - name: install
+      run: |
         import os
         import textwrap
         from pathlib import Path
@@ -56,11 +62,13 @@ runs:
       env:
         action_path: ${{ github.action_path }}
       if: ${{ inputs.install }}
-    - run: |
+    - name: measure
+      run: |
         "${{ github.action_path }}dist/app.pex" "${{ inputs.db-path }}" measure --config "${{ inputs.config-path }}" --metrics "${{ inputs.measure }}"
       shell: bash
       if: ${{ inputs.measure }}
-    - run: |
+    - name: report
+      run: |
           import os
           import os.path
           import subprocess
@@ -86,3 +94,8 @@ runs:
       shell: python
       id: report
       if: ${{ inputs.report }}
+    - name: prune
+      run: |
+        "${{ github.action_path }}dist/app.pex" "${{ inputs.db-path }}" prune --keep "${{ inputs.prune }}"
+      shell: bash
+      if: ${{ inputs.prune }}

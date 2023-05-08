@@ -179,8 +179,7 @@ def test_recent_works(runner, db):
     assert recents[1]["metric_name"] == "errors"
 
 
-# report
-def test_report_works(runner, db):
+def test_report_exits_with_error_when_latest_value_violates_threshold(runner, db):
     api.push(db, "errors", value=10, absolute_max=0)
 
     result = runner.invoke(cli, [str(db.db_path), "report"], catch_exceptions=False)
@@ -213,4 +212,17 @@ def test_report_can_skip_latest_value(runner, db):
 
 
 # prune
+def test_prune_keeps_specified_number_of_points(runner, db):
+    api.push(db, "errors", value=1)
+    api.push(db, "errors", value=4)
+    api.push(db, "coverage", value=7)
+
+    result = runner.invoke(
+        cli, [str(db.db_path), "prune", "--keep", 1], catch_exceptions=False
+    )
+    assert result.exit_code == 0, result.output
+
+    recents = list(db.recent())
+    assert [(p.metric_name, p.metric_value) for p in recents] == [("coverage", 7), ("errors", 4)]
+
 # migrate

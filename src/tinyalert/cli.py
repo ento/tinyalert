@@ -182,10 +182,11 @@ def report(ctx, output_format):
 
 
 @cli.command()
+@click.option("--keep", type=int, required=True, help="How many points to keep")
 @click.pass_context
-def prune(ctx):
-    count = api.prune(ctx.obj)
-    click.echo(f"Pruned {count} points")
+def prune(ctx, keep):
+    count = api.prune(ctx.obj, keep=keep)
+    click.echo(f"Pruned {count} points in total", err=True)
 
 
 @cli.command(
