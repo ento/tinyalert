@@ -12,8 +12,8 @@ from .types import (
     IgnoreType,
     MeasureResult,
     MeasureType,
-    ReportData,
     Point,
+    ReportData,
     SourceType,
 )
 

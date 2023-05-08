@@ -1,18 +1,20 @@
-import datetime
 import contextlib
+import datetime
 from argparse import Namespace
 from pathlib import Path
 from typing import Generator, Optional
 
 import alembic.config
-
-from sqlalchemy import create_engine, select, delete
-from sqlalchemy.orm import DeclarativeBase, MappedAsDataclass
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import relationship
-from sqlalchemy.orm import Session
-from sqlalchemy.types import String, TEXT
+from sqlalchemy import create_engine, delete, select
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    Mapped,
+    MappedAsDataclass,
+    Session,
+    mapped_column,
+    relationship,
+)
+from sqlalchemy.types import TEXT, String
 
 from . import types
 
