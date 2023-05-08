@@ -78,12 +78,18 @@ class ListReporter:
         # TODO: add relative violation
         if report_data.violates_absolute_max:
             self.items.append(
-                f"{report_data.metric_name}: {report_data.latest_value:g} violates absolute max value of {report_data.absolute_max:g}"
+                (
+                    f"{report_data.metric_name}: {report_data.latest_value:g}"
+                    f" violates absolute max value of {report_data.absolute_max:g}"
+                )
             )
 
         if report_data.violates_absolute_min:
             self.items.append(
-                f"{report_data.metric_name}: {report_data.latest_value:g} violates absolute min value of {report_data.absolute_min:g}"
+                (
+                    f"{report_data.metric_name}: {report_data.latest_value:g}"
+                    f" violates absolute min value of {report_data.absolute_min:g}"
+                )
             )
 
     def get_value(self) -> str:

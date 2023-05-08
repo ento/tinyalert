@@ -1,5 +1,3 @@
-import datetime
-
 import pytest
 
 from tinyalert import api

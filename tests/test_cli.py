@@ -7,7 +7,7 @@ from click.testing import CliRunner
 
 from tinyalert import api
 from tinyalert.cli import cli
-from tinyalert.types import Config, MetricConfig
+from tinyalert.types import MetricConfig
 
 
 @pytest.fixture
@@ -42,7 +42,7 @@ def write_config(temp_dir):
 
 def read_recents(runner, db_path):
     recent_result = runner.invoke(cli, [db_path, "recent", "--json"])
-    assert recent_result.exit_code == 0, result
+    assert recent_result.exit_code == 0, recent_result
 
     return [json.loads(line) for line in recent_result.stdout.split("\n") if line]
 

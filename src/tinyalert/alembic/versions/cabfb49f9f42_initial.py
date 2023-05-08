@@ -1,7 +1,7 @@
 """Initial
 
 Revision ID: cabfb49f9f42
-Revises: 
+Revises:
 Create Date: 2023-05-02 01:16:29.957045
 
 """

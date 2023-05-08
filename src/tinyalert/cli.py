@@ -1,4 +1,3 @@
-import json
 import sys
 from pathlib import Path
 from typing import List, Optional
@@ -8,7 +7,7 @@ import tomli
 
 from . import api, db
 from .reporters import DiffReporter, ListReporter, StatusReporter, TableReporter
-from .types import Config, IgnoreType, ReportData
+from .types import Config, IgnoreType
 
 
 @click.group()

@@ -4,8 +4,6 @@ import subprocess
 from pathlib import Path
 from typing import Iterator, List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, computed_field
-
 from .db import DB
 from .types import (
     EvalType,

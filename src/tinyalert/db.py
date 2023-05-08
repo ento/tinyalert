@@ -6,14 +6,7 @@ from typing import Generator, Optional
 
 import alembic.config
 from sqlalchemy import create_engine, delete, select
-from sqlalchemy.orm import (
-    DeclarativeBase,
-    Mapped,
-    MappedAsDataclass,
-    Session,
-    mapped_column,
-    relationship,
-)
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 from sqlalchemy.types import TEXT, String
 
 from . import types
