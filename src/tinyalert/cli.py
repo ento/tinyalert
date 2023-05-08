@@ -75,7 +75,10 @@ def split_values(ctx, param, value):
 )
 @click.option("--url", default=None, help="URL")
 @click.option(
-    "--ignore", type=click.Choice(IgnoreType), default=None, help="Do not alert on this data point"
+    "--ignore",
+    type=click.Choice(IgnoreType),
+    default=None,
+    help="Do not alert on this data point",
 )
 @click.pass_context
 def measure(
@@ -93,7 +96,7 @@ def measure(
             "Unknown metrics: {}".format(
                 ", ".join(set(metrics) - set(metric_configs_by_name.keys()))
             ),
-            err=True
+            err=True,
         )
         ctx.exit(1)
     metrics_to_measure = metric_configs_by_name.keys() if metrics is None else metrics
@@ -152,7 +155,7 @@ def report(ctx, output_format):
         status_reporter.add(report_data)
 
     print(table_reporter.get_value())
-    print('diff', diff_reporter.get_value())
+    print("diff", diff_reporter.get_value())
     print(list_reporter.get_value())
     if not status_reporter.get_value():
         ctx.exit(1)

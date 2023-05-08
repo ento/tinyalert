@@ -157,7 +157,7 @@ def test_report_can_skip_latest_value(runner, db):
             "--abs-max",
             0,
             "--ignore",
-            "all"
+            "all",
         ],
         catch_exceptions=False,
     )

@@ -4,6 +4,7 @@ from tinyalert import api
 
 # TODO : test relative thresholds
 
+
 def test_push_with_minimum_data(db):
     p = api.push(db, "measure", 1)
     assert p.metric_value == 1

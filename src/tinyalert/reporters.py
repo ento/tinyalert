@@ -96,12 +96,23 @@ class DiffReporter:
 
     def add(self, report_data: ReportData) -> None:
         import difflib
-        latest_lines = report_data.latest_content.splitlines(keepends=True) if report_data.latest_content is not None else []
-        previous_lines = report_data.previous_content.splitlines(keepends=True) if report_data.previous_content is not None else []
+
+        latest_lines = (
+            report_data.latest_content.splitlines(keepends=True)
+            if report_data.latest_content is not None
+            else []
+        )
+        previous_lines = (
+            report_data.previous_content.splitlines(keepends=True)
+            if report_data.previous_content is not None
+            else []
+        )
         print(report_data.latest_content, latest_lines)
         print(previous_lines)
         diff = difflib.unified_diff(previous_lines, latest_lines, "previous", "latest")
-        self.diffs.append(MetricDiff(metric_name=report_data.metric_name, diff=''.join(diff)))
+        self.diffs.append(
+            MetricDiff(metric_name=report_data.metric_name, diff="".join(diff))
+        )
 
     def get_value(self) -> str:
         return "\n".join([diff.diff for diff in self.diffs])
