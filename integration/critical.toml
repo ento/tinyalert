@@ -1,3 +1,4 @@
 [metrics.critical]
-command = "cat integration/critical.txt"
+measure_source = "integration/critical.txt"
+measure_type = "file-lines"
 absolute_max = 1

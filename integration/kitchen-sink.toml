@@ -1,3 +1,4 @@
 [metrics.simple]
-command = "cat integration/kitchen-sink-simple.txt"
+measure_source = "integration/kitchen-sink-simple.txt"
+measure_type = "file-lines"
 absolute_max = 10
