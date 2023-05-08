@@ -2,19 +2,17 @@ import datetime
 
 from tinyalert import api
 
-# TODO : test relative thresholds
 
-
-def test_push_with_minimum_data(db):
-    p = api.push(db, "measure", 1)
+def test_push_with_all_fields(db):
+    p = api.push(db, "measure", 1, absolute_max=2, absolute_min=3, relative_max=4, relative_min=5, measure_source="source", diffable_content="diff", url="test")
     assert p.metric_value == 1
-    assert p.absolute_max is None
-    assert p.absolute_min is None
-    assert p.relative_max is None
-    assert p.relative_min is None
-    assert p.measure_source is None
-    assert p.diffable_content is None
-    assert p.url is None
+    assert p.absolute_max == 2
+    assert p.absolute_min == 3
+    assert p.relative_max == 4
+    assert p.relative_min == 5
+    assert p.measure_source == "source"
+    assert p.diffable_content == "diff"
+    assert p.url == "test"
 
 
 def test_combine_with_minimum_data(db, create_db, freezer):
@@ -52,6 +50,8 @@ def test_recent(db):
         value=1,
         absolute_max=10,
         absolute_min=0,
+        relative_max=2,
+        relative_min=3,
         measure_source="content",
         diffable_content="diff",
         url="url",
@@ -65,6 +65,8 @@ def test_recent(db):
     assert points[0].metric_value == 10
     assert points[0].absolute_max is None
     assert points[0].absolute_min is None
+    assert points[0].relative_max is None
+    assert points[0].relative_min is None
     assert points[0].measure_source is None
     assert points[0].diffable_content is None
     assert points[0].url is None
@@ -76,6 +78,8 @@ def test_recent(db):
     assert points[0].metric_value == 10
     assert points[0].absolute_max is None
     assert points[0].absolute_min is None
+    assert points[0].relative_max is None
+    assert points[0].relative_min is None
     assert points[0].measure_source is None
     assert points[0].diffable_content is None
     assert points[0].url is None
@@ -83,6 +87,8 @@ def test_recent(db):
     assert points[1].metric_value == 1
     assert points[1].absolute_max == 10
     assert points[1].absolute_min == 0
+    assert points[1].relative_max == 2
+    assert points[1].relative_min == 3
     assert points[1].measure_source == "content"
     assert points[1].diffable_content == "diff"
     assert points[1].url == "url"
@@ -97,6 +103,8 @@ def test_gather_report_data_when_no_data(db):
     assert data.previous_value is None
     assert data.absolute_max is None
     assert data.absolute_min is None
+    assert data.relative_max is None
+    assert data.relative_min is None
     assert data.latest_diffable_content is None
     assert data.previous_diffable_content is None
     assert data.url is None
@@ -109,6 +117,8 @@ def test_gather_report_data_when_single_point(db):
         value=1,
         absolute_max=10,
         absolute_min=0,
+        relative_max=2,
+        relative_min=3,
         diffable_content="content",
         url="url",
     )
@@ -122,6 +132,8 @@ def test_gather_report_data_when_single_point(db):
     assert data.previous_value is None
     assert data.absolute_max == 10
     assert data.absolute_min == 0
+    assert data.relative_max == 2
+    assert data.relative_min == 3
     assert data.latest_diffable_content == "content"
     assert data.previous_diffable_content is None
     assert data.url == "url"
@@ -134,6 +146,8 @@ def test_gather_report_data_when_two_points(db):
         value=1,
         absolute_max=10,
         absolute_min=0,
+        relative_max=2,
+        relative_min=3,
         diffable_content="previous",
         url="prev_url",
     )
@@ -145,8 +159,10 @@ def test_gather_report_data_when_two_points(db):
     assert data.latest_values == [2.0, 1.0]
     assert data.latest_value == 2
     assert data.previous_value == 1
-    assert data.absolute_max == None
-    assert data.absolute_min == None
+    assert data.absolute_max is None
+    assert data.absolute_min is None
+    assert data.relative_max is None
+    assert data.relative_min is None
     assert data.latest_diffable_content == "latest"
     assert data.previous_diffable_content == "previous"
     assert data.url == "current_url"
