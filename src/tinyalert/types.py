@@ -119,21 +119,21 @@ class ReportData(BaseModel):
 
     @cached_property
     def violates_relative_max(self) -> bool:
-        latest_diff = self.latest_diff
-        if latest_diff is None:
+        latest_change = self.latest_change
+        if latest_change is None:
             return False
         if self.relative_max is None:
             return False
-        return latest_diff > self.relative_max
+        return latest_change > self.relative_max
 
     @cached_property
     def violates_relative_min(self) -> bool:
-        latest_diff = self.latest_diff
-        if latest_diff is None:
+        latest_change = self.latest_change
+        if latest_change is None:
             return False
         if self.relative_min is None:
             return False
-        return latest_diff < self.relative_min
+        return latest_change < self.relative_min
 
     @cached_property
     def violates_absolute_limits(self) -> bool:
@@ -154,7 +154,7 @@ class ReportData(BaseModel):
         return self.violates_absolute_limits or self.violates_relative_limits
 
     @cached_property
-    def latest_diff(self) -> Optional[float]:
+    def latest_change(self) -> Optional[float]:
         if self.latest_value is None:
             return None
         if self.previous_value is None:

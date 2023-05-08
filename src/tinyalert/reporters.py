@@ -40,13 +40,13 @@ class TableReporter:
         if report_data.previous_value is None:
             row.append("-")
         else:
-            diff_string = f"{report_data.latest_diff:+g}"
-            colored_diff_string = (
-                (colored(diff_string, "yellow") + " [!]")
+            change_string = f"{report_data.latest_change:+g}"
+            colored_change_string = (
+                (colored(change_string, "yellow") + " [!]")
                 if report_data.violates_relative_limits
-                else diff_string
+                else change_string
             )
-            row.append(colored_diff_string)
+            row.append(colored_change_string)
 
         thresholds = []
         if report_data.absolute_min is not None:
