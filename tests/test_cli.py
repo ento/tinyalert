@@ -47,6 +47,8 @@ def read_recents(runner, db_path):
     return [json.loads(line) for line in recent_result.stdout.split("\n") if line]
 
 
+# push
+
 
 def test_push(runner, temp_dir):
     result = runner.invoke(
@@ -80,6 +82,9 @@ def test_push(runner, temp_dir):
     assert recents[0]["diffable_content"] == "diffable"
     assert recents[0]["url"] == "url"
     assert recents[0]["ignore"] == "rel"
+
+
+# measure
 
 
 @pytest.mark.parametrize(
@@ -133,6 +138,9 @@ def test_measure_non_existent_metric(runner, temp_dir, write_config):
     assert result.exit_code == 1, result
 
 
+# combine
+
+
 def test_combine_works(runner, create_db):
     dest = create_db("combined.db")
     src = create_db("coverage.db")
@@ -179,6 +187,9 @@ def test_recent_works(runner, db):
     assert recents[1]["metric_name"] == "errors"
 
 
+# report
+
+
 def test_report_exits_with_error_when_latest_value_violates_threshold(runner, db):
     api.push(db, "errors", value=10, absolute_max=0)
 
@@ -212,6 +223,8 @@ def test_report_can_skip_latest_value(runner, db):
 
 
 # prune
+
+
 def test_prune_keeps_specified_number_of_points(runner, db):
     api.push(db, "errors", value=1)
     api.push(db, "errors", value=4)
@@ -225,4 +238,12 @@ def test_prune_keeps_specified_number_of_points(runner, db):
     recents = list(db.recent())
     assert [(p.metric_name, p.metric_value) for p in recents] == [("coverage", 7), ("errors", 4)]
 
+
 # migrate
+
+
+def test_migrate_command(runner):
+    result = runner.invoke(
+        cli, ["db.sqlite", "migrate", "upgrade", "head"], catch_exceptions=False
+    )
+    assert result.exit_code == 0, result.output
