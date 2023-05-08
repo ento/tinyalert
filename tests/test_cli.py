@@ -40,7 +40,46 @@ def write_config(temp_dir):
     return _write_config
 
 
-# TOD: test push
+def read_recents(runner, db_path):
+    recent_result = runner.invoke(cli, [db_path, "recent", "--json"])
+    assert recent_result.exit_code == 0, result
+
+    return [json.loads(line) for line in recent_result.stdout.split("\n") if line]
+
+
+
+def test_push(runner, temp_dir):
+    result = runner.invoke(
+        cli,
+        [
+            "db.sqlite",
+            "push",
+            "errors",
+            "--value", 1,
+            "--abs-max", 2,
+            "--abs-min", 3,
+            "--rel-max", 4,
+            "--rel-min", 5,
+            "--source", "source",
+            "--diffable","diffable",
+            "--url", "url",
+            "--ignore", "rel",
+        ],
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 0, result
+
+    recents = read_recents(runner, "db.sqlite")
+    assert recents[0]["metric_name"] == "errors"
+    assert recents[0]["metric_value"] == 1
+    assert recents[0]["absolute_max"] == 2
+    assert recents[0]["absolute_min"] == 3
+    assert recents[0]["relative_max"] == 4
+    assert recents[0]["relative_min"] == 5
+    assert recents[0]["measure_source"] == "source"
+    assert recents[0]["diffable_content"] == "diffable"
+    assert recents[0]["url"] == "url"
+    assert recents[0]["ignore"] == "rel"
 
 
 @pytest.mark.parametrize(
@@ -67,16 +106,12 @@ def test_measure(runner, temp_dir, write_config, metrics_to_measure, expected):
 
     result = runner.invoke(
         cli,
-        ["db.csv", "measure", "--metrics", metrics_to_measure, "--config", config_path],
+        ["db.sqlite", "measure", "--metrics", metrics_to_measure, "--config", config_path],
         catch_exceptions=False,
     )
     assert result.exit_code == 0, result
 
-    recent_result = runner.invoke(cli, ["db.csv", "recent", "--json"])
-    assert recent_result.exit_code == 0, result
-
-    recents = [json.loads(line) for line in recent_result.stdout.split("\n") if line]
-
+    recents = read_recents(runner, "db.sqlite")
     assert len(recents) == len(expected)
     assert set([p["metric_name"] for p in recents]) == set(expected.keys())
     for p in recents:
@@ -92,7 +127,7 @@ def test_measure_non_existent_metric(runner, temp_dir, write_config):
 
     result = runner.invoke(
         cli,
-        ["db.csv", "measure", "--metrics", "foo,bar", "--config", config_path],
+        ["db.sqlite", "measure", "--metrics", "foo,bar", "--config", config_path],
         catch_exceptions=False,
     )
     assert result.exit_code == 1, result
@@ -109,8 +144,8 @@ def test_combine_works(runner, create_db):
     )
     assert result.exit_code == 0, result.output
 
-    combined_points = list(dest.recent())
-    assert [p.metric_value for p in combined_points] == [4, 1]
+    recents = list(dest.recent())
+    assert [p.metric_value for p in recents] == [4, 1]
 
 
 def test_combine_works_against_empty_db(runner, create_db):
@@ -124,14 +159,8 @@ def test_combine_works_against_empty_db(runner, create_db):
     )
     assert result.exit_code == 0, result
 
-    recent_result = runner.invoke(
-        cli, ["db.sqlite", "recent", "--json"], catch_exceptions=False
-    )
-    assert recent_result.exit_code == 0, recent_result
-
-    recents = [json.loads(line) for line in recent_result.stdout.split("\n") if line]
-
-    assert len(recents) == 2
+    recents = read_recents(runner, "db.sqlite")
+    assert [p["metric_value"] for p in recents] == [4, 1]
 
 
 def test_recent_works(runner, db):
