@@ -99,16 +99,14 @@ class DiffReporter:
 
         latest_lines = (
             report_data.latest_content.splitlines(keepends=True)
-            if report_data.latest_content is not None
+            if report_data.latest_diffable_content is not None
             else []
         )
         previous_lines = (
             report_data.previous_content.splitlines(keepends=True)
-            if report_data.previous_content is not None
+            if report_data.previous_diffable_content is not None
             else []
         )
-        print(report_data.latest_content, latest_lines)
-        print(previous_lines)
         diff = difflib.unified_diff(previous_lines, latest_lines, "previous", "latest")
         self.diffs.append(
             MetricDiff(metric_name=report_data.metric_name, diff="".join(diff))

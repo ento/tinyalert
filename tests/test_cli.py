@@ -101,22 +101,23 @@ def test_measure_non_existent_metric(runner, temp_dir, write_config):
 def test_combine_works(runner, create_db):
     dest = create_db("combined.db")
     src = create_db("coverage.db")
-    api.push(dest, "errors", 1, 2, 3, None, None, None, "error 1", "error_url_1")
-    api.push(src, "coverage", 4, 5, 6, None, None, None, "line 1", "cov_url")
+    api.push(dest, "errors", value=1)
+    api.push(src, "coverage", value=4)
 
     result = runner.invoke(
         cli, [str(dest.db_path), "combine", str(src.db_path)], catch_exceptions=False
     )
     assert result.exit_code == 0, result.output
 
-    assert len(list(dest.recent())) == 2
+    combined_points = list(dest.recent())
+    assert [p.metric_value for p in combined_points] == [4, 1]
 
 
 def test_combine_works_against_empty_db(runner, create_db):
     src = create_db("errors.db")
     src2 = create_db("coverage.db")
-    api.push(src, "errors", 1, 2, 3, None, None, None, "error 1", "error_url_1")
-    api.push(src2, "coverage", 4, 5, 6, None, None, None, "line 1", "cov_url")
+    api.push(src, "errors", value=1)
+    api.push(src2, "coverage", value=4)
 
     result = runner.invoke(
         cli, ["db.sqlite", "combine", str(src.db_path), str(src2.db_path)]
@@ -134,8 +135,8 @@ def test_combine_works_against_empty_db(runner, create_db):
 
 
 def test_recent_works(runner, db):
-    api.push(db, "errors", 1, 2, 3, None, None, None, "error 1", "error_url_1")
-    api.push(db, "coverage", 4, 5, 6, None, None, None, "line 1", "cov_url")
+    api.push(db, "errors", value=1)
+    api.push(db, "coverage", value=4)
 
     recent_result = runner.invoke(
         cli, [str(db.db_path), "recent", "--json"], catch_exceptions=False
@@ -151,7 +152,7 @@ def test_recent_works(runner, db):
 
 # report
 def test_report_works(runner, db):
-    api.push(db, "errors", 10, 0)
+    api.push(db, "errors", value=10, absolute_max=0)
 
     result = runner.invoke(cli, [str(db.db_path), "report"], catch_exceptions=False)
 

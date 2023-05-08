@@ -20,6 +20,7 @@ class Point(BaseModel):
     relative_max: Optional[float]
     relative_min: Optional[float]
     ignore: Optional[IgnoreType]
+    measure_source: Optional[str]
     diffable_content: Optional[str]
     url: Optional[str]
 
@@ -79,7 +80,7 @@ class Config(BaseModel):
 
 class MeasureResult(BaseModel):
     value: float
-    content: str
+    source: str
 
 
 class MetricDiff(BaseModel):
@@ -97,8 +98,8 @@ class ReportData(BaseModel):
     relative_max: Optional[float] = None
     relative_min: Optional[float] = None
     ignore: Optional[IgnoreType] = None
-    latest_content: Optional[str] = None
-    previous_content: Optional[str] = None
+    latest_diffable_content: Optional[str] = None
+    previous_diffable_content: Optional[str] = None
     url: Optional[str] = None
 
     @cached_property

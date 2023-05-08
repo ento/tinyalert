@@ -5,7 +5,15 @@ from typing import Iterator, List, Optional
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 from .db import DB
-from .types import EvalType, IgnoreType, MeasureResult, MeasureType, ReportData, Point
+from .types import (
+    EvalType,
+    IgnoreType,
+    MeasureResult,
+    MeasureType,
+    ReportData,
+    Point,
+    SourceType,
+)
 
 
 def push(
@@ -18,6 +26,7 @@ def push(
     relative_min: Optional[float] = None,
     ignore: Optional[IgnoreType] = None,
     measure_source: Optional[str] = None,
+    diffable_content: Optional[str] = None,
     url: Optional[str] = None,
 ) -> Point:
     p = Point(
@@ -29,7 +38,8 @@ def push(
         relative_max=relative_max,
         relative_min=relative_min,
         ignore=ignore,
-        diffable_content=measure_source,
+        measure_source=measure_source,
+        diffable_content=diffable_content,
         url=url,
     )
     return db.add(p)
@@ -53,12 +63,22 @@ def recent(db: DB, count: int = 10) -> Iterator[Point]:
 
 
 def measure(source: str, method: MeasureType) -> MeasureResult:
-    content = subprocess.check_output(shlex.split(source)).strip()
+    source_content = eval_source(source, method.source_type)
     if method.eval_type == EvalType.lines:
-        return MeasureResult(value=len(content.splitlines()), content=content)
+        return MeasureResult(
+            value=len(source_content.splitlines()), source=source_content
+        )
     if method.eval_type == EvalType.raw:
-        return MeasureResult(value=float(content.strip()), content=content)
+        return MeasureResult(value=float(source_content.strip()), source=source_content)
     raise Exception(f"Unknown measurement method: {method}")
+
+
+def eval_source(source: str, method: SourceType) -> str:
+    if method == SourceType.exec_:
+        return subprocess.check_output(shlex.split(source)).strip()
+    if method == SourceType.file_:
+        return Path(source).read_text()
+    raise Exception(f"Unknown source type: {method}")
 
 
 def gather_report_data(db: DB, metric_name: str) -> ReportData:
@@ -77,7 +97,7 @@ def gather_report_data(db: DB, metric_name: str) -> ReportData:
     data.relative_max = latest.relative_max
     data.relative_min = latest.relative_min
     data.ignore = latest.ignore
-    data.latest_content = latest.diffable_content
+    data.latest_diffable_content = latest.diffable_content
     data.url = latest.url
 
     if not points:
@@ -85,6 +105,6 @@ def gather_report_data(db: DB, metric_name: str) -> ReportData:
 
     previous = points.pop(0)
     data.previous_value = previous.metric_value
-    data.previous_content = previous.diffable_content
+    data.previous_diffable_content = previous.diffable_content
 
     return data

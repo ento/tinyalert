@@ -32,8 +32,9 @@ class Point(Base):
     relative_max: Mapped[Optional[float]] = mapped_column()
     relative_min: Mapped[Optional[float]] = mapped_column()
     ignore: Mapped[Optional[types.IgnoreType]] = mapped_column()
-    url: Mapped[Optional[str]] = mapped_column()
+    measure_source: Mapped[Optional[str]] = mapped_column(TEXT)
     diffable_content: Mapped[Optional[str]] = mapped_column(TEXT)
+    url: Mapped[Optional[str]] = mapped_column()
 
 
 class DB:
@@ -55,6 +56,7 @@ class DB:
                     relative_max=point.relative_max,
                     relative_min=point.relative_min,
                     ignore=point.ignore,
+                    measure_source=point.measure_source,
                     diffable_content=point.diffable_content,
                     url=point.url,
                 )

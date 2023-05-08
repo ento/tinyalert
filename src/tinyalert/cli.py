@@ -27,6 +27,9 @@ def cli(ctx, db_path):
 @click.option("--rel-max", default=None, type=float, help="Relative max (inclusive)")
 @click.option("--rel-min", default=None, type=float, help="Relative min (inclusive)")
 @click.option("--source", default=None, help="Raw content of the measured thing")
+@click.option(
+    "--diffable", default=None, help="Text content suitable for showing diffs"
+)
 @click.option("--url", default=None, help="URL")
 @click.option(
     "--ignore",
@@ -36,7 +39,17 @@ def cli(ctx, db_path):
 )
 @click.pass_context
 def push(
-    ctx, metric_name, value, abs_max, abs_min, rel_max, rel_min, source, url, ignore
+    ctx,
+    metric_name,
+    value,
+    abs_max,
+    abs_min,
+    rel_max,
+    rel_min,
+    source,
+    diffable,
+    url,
+    ignore,
 ):
     if value is None:
         value = float(sys.stdin.read().strip())
@@ -55,6 +68,7 @@ def push(
         relative_min=rel_min,
         ignore=ignore,
         measure_source=source,
+        diffable_content=diffable,
         url=url,
     )
 
@@ -106,18 +120,24 @@ def measure(
     for metric_name in metrics_to_measure:
         metric = metric_configs_by_name[metric_name]
         result = api.measure(metric.measure_source, metric.measure_type)
+        diffable_content = None
+        if metric.diffable_source:
+            diffable_content = api.eval_source(
+                metric.diffable_source, metric.diffable_type
+            )
         print("measured", metric_name, result.value)
         api.push(
             ctx.obj,
             metric.name,
-            result.value,
-            metric.absolute_max,
-            metric.absolute_min,
-            metric.relative_max,
-            metric.relative_min,
-            ignore,
-            result.content,
-            url,
+            value=result.value,
+            absolute_max=metric.absolute_max,
+            absolute_min=metric.absolute_min,
+            relative_max=metric.relative_max,
+            relative_min=metric.relative_min,
+            ignore=ignore,
+            measure_source=result.source,
+            diffable_content=diffable_content,
+            url=url,
         )
 
 
