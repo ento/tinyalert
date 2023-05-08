@@ -3,6 +3,7 @@ import datetime
 import pytest
 
 from tinyalert import api
+from tinyalert.types import MeasureType
 
 
 def test_push_with_all_fields(db):
@@ -15,6 +16,16 @@ def test_push_with_all_fields(db):
     assert p.measure_source == "source"
     assert p.diffable_content == "diff"
     assert p.url == "test"
+
+
+@pytest.mark.parametrize("source,method,expected", [("test.md", "file-lines", 1), ("test.md", "file-raw", 10), ("cat test.md", "exec-lines", 1), ("cat test.md", "exec-raw", 10)])
+def test_measure(monkeypatch, tmp_path, source, method, expected):
+    tmp_path.joinpath("test.md").write_text("10")
+    monkeypatch.chdir(tmp_path)
+
+    result = api.measure(source, MeasureType.model_validate(method))
+    assert result.value == expected
+    assert result.source == "10"
 
 
 @pytest.mark.parametrize("source,method,expected", [("test.md", "file", "hello"), ("cat test.md", "exec", "hello")])

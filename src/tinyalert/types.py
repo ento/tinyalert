@@ -3,7 +3,7 @@ import enum
 from functools import cached_property
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, root_validator
 
 
 class IgnoreType(str, enum.Enum):
@@ -41,6 +41,14 @@ class MeasureType(BaseModel):
     source_type: SourceType
     eval_type: EvalType
 
+    @root_validator(pre=True)
+    def parse_string_format(cls, v):
+        attrs = v
+        if isinstance(v, str):
+            source_type, eval_type = v.split("-")
+            attrs = dict(source_type=source_type, eval_type=eval_type)
+        return attrs
+
 
 class MetricConfig(BaseModel):
     name: str
@@ -57,14 +65,6 @@ class MetricConfig(BaseModel):
     relative_max: Optional[float] = None
     relative_min: Optional[float] = None
     url: Optional[str] = None
-
-    @field_validator("measure_type", mode="before")
-    def validate_measure_type(cls, v):
-        attrs = v
-        if isinstance(v, str):
-            source_type, eval_type = v.split("-")
-            attrs = dict(source_type=source_type, eval_type=eval_type)
-        return MeasureType.model_validate(attrs)
 
 
 class Config(BaseModel):
