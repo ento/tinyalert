@@ -26,7 +26,7 @@ class Point(BaseModel):
     model_config = dict(from_attributes=True)
 
 
-class ContentType(str, enum.Enum):
+class SourceType(str, enum.Enum):
     exec_ = "exec"
     file_ = "file"
 
@@ -37,7 +37,7 @@ class EvalType(str, enum.Enum):
 
 
 class MeasureType(BaseModel):
-    content_type: ContentType
+    source_type: SourceType
     eval_type: EvalType
 
 
@@ -46,11 +46,11 @@ class MetricConfig(BaseModel):
     measure_source: str
     measure_type: MeasureType = Field(
         default_factory=lambda: MeasureType(
-            content_type=ContentType.file_, eval_type=EvalType.lines
+            source_type=SourceType.file_, eval_type=EvalType.lines
         )
     )
     diffable_source: str = None
-    diffable_type: ContentType = ContentType.file_
+    diffable_type: SourceType = SourceType.file_
     absolute_max: Optional[float] = None
     absolute_min: Optional[float] = None
     relative_max: Optional[float] = None
@@ -61,8 +61,8 @@ class MetricConfig(BaseModel):
     def validate_measure_type(cls, v):
         attrs = v
         if isinstance(v, str):
-            content_type, eval_type = v.split("-")
-            attrs = dict(content_type=content_type, eval_type=eval_type)
+            source_type, eval_type = v.split("-")
+            attrs = dict(source_type=source_type, eval_type=eval_type)
         return MeasureType.model_validate(attrs)
 
 
