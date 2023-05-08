@@ -7,7 +7,18 @@ from tinyalert.types import MeasureType
 
 
 def test_push_with_all_fields(db):
-    p = api.push(db, "measure", 1, absolute_max=2, absolute_min=3, relative_max=4, relative_min=5, measure_source="source", diffable_content="diff", url="test")
+    p = api.push(
+        db,
+        "measure",
+        1,
+        absolute_max=2,
+        absolute_min=3,
+        relative_max=4,
+        relative_min=5,
+        measure_source="source",
+        diffable_content="diff",
+        url="test",
+    )
     assert p.metric_value == 1
     assert p.absolute_max == 2
     assert p.absolute_min == 3
@@ -18,7 +29,15 @@ def test_push_with_all_fields(db):
     assert p.url == "test"
 
 
-@pytest.mark.parametrize("source,method,expected", [("test.md", "file-lines", 1), ("test.md", "file-raw", 10), ("cat test.md", "exec-lines", 1), ("cat test.md", "exec-raw", 10)])
+@pytest.mark.parametrize(
+    "source,method,expected",
+    [
+        ("test.md", "file-lines", 1),
+        ("test.md", "file-raw", 10),
+        ("cat test.md", "exec-lines", 1),
+        ("cat test.md", "exec-raw", 10),
+    ],
+)
 def test_measure(monkeypatch, tmp_path, source, method, expected):
     tmp_path.joinpath("test.md").write_text("10")
     monkeypatch.chdir(tmp_path)
@@ -28,7 +47,10 @@ def test_measure(monkeypatch, tmp_path, source, method, expected):
     assert result.source == "10"
 
 
-@pytest.mark.parametrize("source,method,expected", [("test.md", "file", "hello"), ("cat test.md", "exec", "hello")])
+@pytest.mark.parametrize(
+    "source,method,expected",
+    [("test.md", "file", "hello"), ("cat test.md", "exec", "hello")],
+)
 def test_eval_source(monkeypatch, tmp_path, source, method, expected):
     tmp_path.joinpath("test.md").write_text("hello")
     monkeypatch.chdir(tmp_path)

@@ -57,15 +57,24 @@ def test_push(runner, temp_dir):
             "db.sqlite",
             "push",
             "errors",
-            "--value", 1,
-            "--abs-max", 2,
-            "--abs-min", 3,
-            "--rel-max", 4,
-            "--rel-min", 5,
-            "--source", "source",
-            "--diffable","diffable",
-            "--url", "url",
-            "--ignore", "rel",
+            "--value",
+            1,
+            "--abs-max",
+            2,
+            "--abs-min",
+            3,
+            "--rel-max",
+            4,
+            "--rel-min",
+            5,
+            "--source",
+            "source",
+            "--diffable",
+            "diffable",
+            "--url",
+            "url",
+            "--ignore",
+            "rel",
         ],
         catch_exceptions=False,
     )
@@ -111,7 +120,14 @@ def test_measure(runner, temp_dir, write_config, metrics_to_measure, expected):
 
     result = runner.invoke(
         cli,
-        ["db.sqlite", "measure", "--metrics", metrics_to_measure, "--config", config_path],
+        [
+            "db.sqlite",
+            "measure",
+            "--metrics",
+            metrics_to_measure,
+            "--config",
+            config_path,
+        ],
         catch_exceptions=False,
     )
     assert result.exit_code == 0, result
@@ -236,7 +252,10 @@ def test_prune_keeps_specified_number_of_points(runner, db):
     assert result.exit_code == 0, result.output
 
     recents = list(db.recent())
-    assert [(p.metric_name, p.metric_value) for p in recents] == [("coverage", 7), ("errors", 4)]
+    assert [(p.metric_name, p.metric_value) for p in recents] == [
+        ("coverage", 7),
+        ("errors", 4),
+    ]
 
 
 # migrate
