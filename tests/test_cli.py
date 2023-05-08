@@ -50,8 +50,16 @@ def write_config(temp_dir):
 def test_measure(runner, temp_dir, write_config, metrics_to_measure, expected):
     config_path = write_config(
         [
-            MetricConfig(name="foo", command="grep -vc ^$ foo.txt"),
-            MetricConfig(name="bar", command="grep -vc ^$ bar.txt"),
+            MetricConfig(
+                name="foo",
+                measure_source="grep -vc ^$ foo.txt",
+                measure_type="exec-raw",
+            ),
+            MetricConfig(
+                name="bar",
+                measure_source="grep -vc ^$ bar.txt",
+                measure_type="exec-raw",
+            ),
         ]
     )
     temp_dir.joinpath("foo.txt").write_text("1\n2\n")
@@ -76,11 +84,17 @@ def test_measure(runner, temp_dir, write_config, metrics_to_measure, expected):
 
 
 def test_measure_non_existent_metric(runner, temp_dir, write_config):
-    config_path = write_config([
-        MetricConfig(name="foo", command="grep -vc ^$ foo.txt"),
-    ])
+    config_path = write_config(
+        [
+            MetricConfig(name="foo", measure_source="grep -vc ^$ foo.txt"),
+        ]
+    )
 
-    result = runner.invoke(cli, ["db.csv", "measure", "--metrics", "foo,bar", "--config", config_path], catch_exceptions=False)
+    result = runner.invoke(
+        cli,
+        ["db.csv", "measure", "--metrics", "foo,bar", "--config", config_path],
+        catch_exceptions=False,
+    )
     assert result.exit_code == 1, result
 
 

@@ -5,7 +5,7 @@ from typing import Iterator, List, Optional
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 from .db import DB
-from .types import IgnoreType, MeasureResult, MeasureType, ReportData, Point
+from .types import EvalType, IgnoreType, MeasureResult, MeasureType, ReportData, Point
 
 
 def push(
@@ -17,7 +17,7 @@ def push(
     relative_max: Optional[float] = None,
     relative_min: Optional[float] = None,
     ignore: Optional[IgnoreType] = None,
-    content: Optional[str] = None,
+    measure_source: Optional[str] = None,
     url: Optional[str] = None,
 ) -> Point:
     p = Point(
@@ -29,7 +29,7 @@ def push(
         relative_max=relative_max,
         relative_min=relative_min,
         ignore=ignore,
-        diffable_content=content,
+        diffable_content=measure_source,
         url=url,
     )
     return db.add(p)
@@ -52,10 +52,12 @@ def recent(db: DB, count: int = 10) -> Iterator[Point]:
         yield p
 
 
-def measure(command: str, method: MeasureType) -> MeasureResult:
-    content = subprocess.check_output(shlex.split(command)).strip()
-    if method == MeasureType.lines:
+def measure(source: str, method: MeasureType) -> MeasureResult:
+    content = subprocess.check_output(shlex.split(source)).strip()
+    if method.eval_type == EvalType.lines:
         return MeasureResult(value=len(content.splitlines()), content=content)
+    if method.eval_type == EvalType.raw:
+        return MeasureResult(value=float(content.strip()), content=content)
     raise Exception(f"Unknown measurement method: {method}")
 
 

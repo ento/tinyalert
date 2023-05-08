@@ -26,7 +26,7 @@ def cli(ctx, db_path):
 @click.option("--abs-min", default=None, type=float, help="Absolute min (inclusive)")
 @click.option("--rel-max", default=None, type=float, help="Relative max (inclusive)")
 @click.option("--rel-min", default=None, type=float, help="Relative min (inclusive)")
-@click.option("--content", default=None, help="Raw content of the measured thing")
+@click.option("--source", default=None, help="Raw content of the measured thing")
 @click.option("--url", default=None, help="URL")
 @click.option(
     "--ignore",
@@ -35,7 +35,9 @@ def cli(ctx, db_path):
     help="Do not alert on this data point",
 )
 @click.pass_context
-def push(ctx, metric_name, value, abs_max, abs_min, rel_max, rel_min, content, url, ignore):
+def push(
+    ctx, metric_name, value, abs_max, abs_min, rel_max, rel_min, source, url, ignore
+):
     if value is None:
         value = float(sys.stdin.read().strip())
 
@@ -52,7 +54,7 @@ def push(ctx, metric_name, value, abs_max, abs_min, rel_max, rel_min, content, u
         relative_max=rel_max,
         relative_min=rel_min,
         ignore=ignore,
-        content=content,
+        measure_source=source,
         url=url,
     )
 
@@ -103,7 +105,7 @@ def measure(
     print(list(metrics_to_measure), metrics)
     for metric_name in metrics_to_measure:
         metric = metric_configs_by_name[metric_name]
-        result = api.measure(metric.command, metric.method)
+        result = api.measure(metric.measure_source, metric.measure_type)
         print("measured", metric_name, result.value)
         api.push(
             ctx.obj,

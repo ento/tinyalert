@@ -11,15 +11,6 @@ class IgnoreType(str, enum.Enum):
     all_ = "all"
 
 
-class MeasureType(str, enum.Enum):
-    lines = "lines"
-
-
-class MeasureResult(BaseModel):
-    value: float
-    content: str
-
-
 class Point(BaseModel):
     metric_name: str
     time: datetime.datetime
@@ -35,15 +26,44 @@ class Point(BaseModel):
     model_config = dict(from_attributes=True)
 
 
+class ContentType(str, enum.Enum):
+    exec_ = "exec"
+    file_ = "file"
+
+
+class EvalType(str, enum.Enum):
+    lines = "lines"
+    raw = "raw"
+
+
+class MeasureType(BaseModel):
+    content_type: ContentType
+    eval_type: EvalType
+
+
 class MetricConfig(BaseModel):
     name: str
-    command: str
-    method: MeasureType = MeasureType.lines
+    measure_source: str
+    measure_type: MeasureType = Field(
+        default_factory=lambda: MeasureType(
+            content_type=ContentType.file_, eval_type=EvalType.lines
+        )
+    )
+    diffable_source: str = None
+    diffable_type: ContentType = ContentType.file_
     absolute_max: Optional[float] = None
     absolute_min: Optional[float] = None
     relative_max: Optional[float] = None
     relative_min: Optional[float] = None
     url: Optional[str] = None
+
+    @field_validator("measure_type", mode="before")
+    def validate_measure_type(cls, v):
+        attrs = v
+        if isinstance(v, str):
+            content_type, eval_type = v.split("-")
+            attrs = dict(content_type=content_type, eval_type=eval_type)
+        return MeasureType.model_validate(attrs)
 
 
 class Config(BaseModel):
@@ -55,6 +75,11 @@ class Config(BaseModel):
             MetricConfig.model_validate(dict(name=name, **attrs))
             for name, attrs in v.items()
         ]
+
+
+class MeasureResult(BaseModel):
+    value: float
+    content: str
 
 
 class MetricDiff(BaseModel):
