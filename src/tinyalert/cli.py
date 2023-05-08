@@ -116,7 +116,6 @@ def measure(
         )
         ctx.exit(1)
     metrics_to_measure = metric_configs_by_name.keys() if metrics is None else metrics
-    print(list(metrics_to_measure), metrics)
     for metric_name in metrics_to_measure:
         metric = metric_configs_by_name[metric_name]
         result = api.measure(metric.measure_source, metric.measure_type)
@@ -125,7 +124,6 @@ def measure(
             diffable_content = api.eval_source(
                 metric.diffable_source, metric.diffable_type
             )
-        print("measured", metric_name, result.value)
         api.push(
             ctx.obj,
             metric.name,
@@ -177,7 +175,7 @@ def report(ctx, output_format):
         status_reporter.add(report_data)
 
     print(table_reporter.get_value())
-    print("diff", diff_reporter.get_value())
+    print(diff_reporter.get_value())
     print(list_reporter.get_value())
     if not status_reporter.get_value():
         ctx.exit(1)

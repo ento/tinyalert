@@ -177,7 +177,6 @@ def test_report_can_skip_latest_value(runner, db):
         catch_exceptions=False,
     )
     assert push_result.exit_code == 0, push_result
-    print(push_result.output)
 
     result = runner.invoke(cli, [str(db.db_path), "report"], catch_exceptions=False)
 
