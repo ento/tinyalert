@@ -66,7 +66,7 @@ runs:
       if: ${{ inputs.install == 'true' }}
     - name: measure
       run: |
-        "${{ github.action_path }}dist/app.pex" "${{ inputs.db-path }}" measure --config "${{ inputs.config-path }}" --metrics "${{ inputs.measure }}"
+        python3 "${{ github.action_path }}dist/app.pex" "${{ inputs.db-path }}" measure --config "${{ inputs.config-path }}" --metrics "${{ inputs.measure }}"
       shell: bash
       if: ${{ inputs.measure }}
     - name: report
