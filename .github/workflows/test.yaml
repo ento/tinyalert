@@ -42,7 +42,7 @@ jobs:
       - run: |
           pants lint ::
   install-and-use:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04 # python 3.8 - TODO: support multiple Python versions
     steps:
       - uses: actions/checkout@v3
       - name: run action
@@ -53,7 +53,7 @@ jobs:
         run: |
           tinyalert --help
   measure-and-report:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04 # python 3.8 - TODO: support multiple Python versions
     strategy:
       matrix:
         include:
