@@ -1,0 +1,32 @@
+# name: test_diff_reporter_outputs
+  '''
+  
+  <details><summary>kitchen-sink diff</summary>
+  
+  ```diff
+  --- previous
+  +++ latest
+  @@ -1 +1 @@
+  -bbb+aaa
+  ```
+  
+  </details>
+  
+  '''
+# ---
+# name: test_list_reporter_outputs
+  '''
+  - kitchen-sink latest value 2: violates absolute max value of 0
+  - kitchen-sink latest value 2: violates absolute min value of 3
+  - kitchen-sink changed by +1: violates relative max value of +0
+  - kitchen-sink changed by +1: violates relative min value of +2
+  '''
+# ---
+# name: test_table_reporter_outputs
+  '''
+  | Name         | Value   | Thresholds     | Change   | Thresholds     | Trend   | Details                        |
+  |--------------|---------|----------------|----------|----------------|---------|--------------------------------|
+  | null         | -       | -              | -        | -              |         |                                |
+  | kitchen-sink | 2 [!]   | 3.0<=v, v<=0.0 | +1 [!]   | 2.0<=Δ, Δ<=0.0 | ▁▄█     | [Details](http://example.com/) |
+  '''
+# ---
