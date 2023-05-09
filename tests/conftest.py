@@ -1,4 +1,3 @@
-import logging
 import os
 
 import pytest
@@ -15,11 +14,11 @@ class EscapePantsSandboxExtension(AmberSnapshotExtension):
 
     FIXME https://github.com/pantsbuild/pants/issues/11622:
 
-    Pants runs tests in a 'sandboxed' temporary directory, so edits to the snapshot file aren't
-    persistent. This works around via an orchestration script that copies the snapshots to a
-    temporary directory, editing paths to have syrupy be reading/writing those files, and then
-    copies back (see scripts/pants-with-snapshots-hack.sh).
-
+    Pants runs tests in a 'sandboxed' temporary directory, so edits to the
+    snapshot file aren't persistent. This works around via an orchestration
+    script that copies the snapshots to a temporary directory, editing paths
+    to have syrupy be reading/writing those files, and then copies back
+    (see scripts/pants-with-snapshot-sandbox.sh).
     """
 
     @property
@@ -30,12 +29,14 @@ class EscapePantsSandboxExtension(AmberSnapshotExtension):
         # /tmp/whatever/tests/something/__snapshots__
         original = super()._dirname
 
-        # duplicated root directory, set from original invocation via pants.toml and scripts/pants-with-snapshot-sandbox.sh
+        # duplicated root directory, set from original invocation via pants.toml
+        # and scripts/pants-with-snapshot-sandbox.sh
         snapshot_hack_dir = os.environ[ENV_VAR]
 
         # find just the /tests/... part
         tests_index = original.index("/tests/")
-        # mash 'em together to get the path that'll be copied back to the repo after the test run
+        # mash 'em together to get the path that'll be copied back to the repo
+        # after the test run
         return f"{snapshot_hack_dir}{original[tests_index:]}"
 
 
