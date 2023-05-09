@@ -1,3 +1,5 @@
+import difflib
+
 from sparklines import sparklines
 from tabulate import tabulate
 from termcolor import colored
@@ -101,8 +103,6 @@ class DiffReporter:
         self.diffs = []
 
     def add(self, report_data: ReportData) -> None:
-        import difflib
-
         latest_lines = (
             report_data.latest_content.splitlines(keepends=True)
             if report_data.latest_diffable_content is not None
