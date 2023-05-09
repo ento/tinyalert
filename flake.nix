@@ -8,12 +8,13 @@
         pkgs = import nixpkgs {
           inherit system;
         };
+        defaultPython = pkgs.python38;
         buildInputs = [
           pkgs.act
           pkgs.nodejs
           pkgs.poetry
           pkgs.sqlite
-          pkgs.python38
+          defaultPython
         ];
         app = pkgs.poetry2nix.mkPoetryApplication {
           projectDir = ./.;
@@ -37,6 +38,9 @@
       in {
         devShells.default = pkgs.mkShell {
           inherit buildInputs;
+          shellHook = ''
+            export PYTHON_SEARCH_PATH=${defaultPython}/bin
+          '';
         };
         packages.tinyalert = app;
         defaultPackage = app;

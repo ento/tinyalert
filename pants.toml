@@ -8,8 +8,12 @@ backend_packages = [
 ]
 
 [python]
-interpreter_constraints = ["==3.8.*"]
+interpreter_constraints = [">=3.8,<4"]
 enable_resolves = true
+
+[python-bootstrap]
+# Limit to Python interpreter installed by flake.nix
+search_path = ["%(env.PYTHON_SEARCH_PATH)s"]
 
 [pytest]
 lockfile = "3rdparty/python/pytest.lock"
