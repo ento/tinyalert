@@ -5,6 +5,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+env:
+  PYTHON_SEARCH_PATH: "<PATH>"
+
 jobs:
   unit-tests:
     runs-on: ubuntu-latest

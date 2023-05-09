@@ -7,9 +7,6 @@ backend_packages = [
   "pants.backend.python.lint.isort",
 ]
 
-[DEFAULT]
-PYTHON_SEARCH_PATH = "<PATH>"
-
 [python]
 interpreter_constraints = [">=3.8,<4"]
 enable_resolves = true
