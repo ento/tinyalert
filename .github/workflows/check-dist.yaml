@@ -1,0 +1,40 @@
+# Make sure the checked-in `app.pex` actually matches what we expect it to be.
+name: Check dist/
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+  workflow_dispatch:
+
+jobs:
+  check-dist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: init pants
+        uses: pantsbuild/actions/init-pants@main
+        with:
+          gha-cache-key: cache0
+          named-caches-hash: ${{ hashFiles('3rdparty/python/*.lock') }}
+      - run: |
+          pants package ::
+      - name: Compare the expected and actual dist/ directories
+        run: |
+          if [ "$(git diff --ignore-space-at-eol dist/ | wc -l)" -gt "0" ]; then
+            echo "Detected uncommitted changes after build.  See status below:"
+            git diff
+            exit 1
+          fi
+        id: diff
+      # If dist/ was different than expected, upload the expected version as an artifact
+      - uses: actions/upload-artifact@v3
+        if: ${{ failure() && steps.diff.conclusion == 'failure' }}
+        with:
+          name: dist
+          path: dist/

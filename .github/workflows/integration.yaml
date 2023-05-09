@@ -10,13 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: init pants
-        uses: pantsbuild/actions/init-pants@main
-        with:
-          gha-cache-key: cache0
-          named-caches-hash: ${{ hashFiles('3rdparty/python/*.lock') }}
-      - run: |
-          pants package ::
       - name: run action
         uses: ./
         with:
@@ -37,13 +30,6 @@ jobs:
             expected-outcome: 'alert'
     steps:
       - uses: actions/checkout@v3
-      - name: init pants
-        uses: pantsbuild/actions/init-pants@main
-        with:
-          gha-cache-key: cache0
-          named-caches-hash: ${{ hashFiles('3rdparty/python/*.lock') }}
-      - run: |
-          pants package ::
       - name: run action
         uses: ./
         id: act
