@@ -14,5 +14,12 @@ enable_resolves = true
 [pytest]
 lockfile = "3rdparty/python/pytest.lock"
 extra_requirements.add = [
-  "pytest-freezer"
+  "pytest-freezer",
+  "syrupy",
+]
+
+[test]
+extra_env_vars = [
+  # FIXME https://github.com/pantsbuild/pants/issues/11622, see tests/conftest.py and scripts/pants-with-snapshot-sandbox.sh
+  "PANTS_WITH_SNAPSHOTS_HACK_DIR",
 ]
