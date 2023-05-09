@@ -8,7 +8,7 @@ backend_packages = [
 ]
 
 [python]
-interpreter_constraints = [">=3.8,<4"]
+interpreter_constraints = ["==3.8.*"]
 enable_resolves = true
 
 [pytest]
