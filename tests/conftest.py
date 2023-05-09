@@ -7,7 +7,6 @@ from syrupy.extensions.amber import AmberSnapshotExtension
 
 from tinyalert.db import DB
 
-
 ENV_VAR = "PANTS_WITH_SNAPSHOTS_HACK_DIR"
 
 

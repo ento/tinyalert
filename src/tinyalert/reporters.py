@@ -54,7 +54,9 @@ class TableReporter:
             )
             row["change"] = colored_change_string
 
-        if (report_data.absolute_min is not None) or (report_data.absolute_max is not None):
+        if (report_data.absolute_min is not None) or (
+            report_data.absolute_max is not None
+        ):
             abs_thresholds = []
             if report_data.absolute_min is not None:
                 abs_thresholds.append(f"{report_data.absolute_min}<=v")
@@ -62,7 +64,9 @@ class TableReporter:
                 abs_thresholds.append(f"v<={report_data.absolute_max}")
             row["abs_limits"] = ", ".join(abs_thresholds)
 
-        if (report_data.relative_min is not None) or (report_data.relative_max is not None):
+        if (report_data.relative_min is not None) or (
+            report_data.relative_max is not None
+        ):
             rel_thresholds = []
             if report_data.relative_min is not None:
                 rel_thresholds.append(f"{report_data.relative_min}<=Δ")
@@ -149,7 +153,8 @@ class DiffReporter:
         return "\n".join([self._format_metric_diff(diff) for diff in self.diffs])
 
     def _format_metric_diff(self, metric_diff: MetricDiff) -> str:
-        return textwrap.dedent("""
+        return textwrap.dedent(
+            """
         <details><summary>{metric_name} diff</summary>
 
         ```diff
@@ -157,7 +162,8 @@ class DiffReporter:
         ```
 
         </details>
-        """).format(**metric_diff.dict())
+        """
+        ).format(**metric_diff.dict())
 
 
 class StatusReporter:
