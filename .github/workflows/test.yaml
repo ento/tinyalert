@@ -16,7 +16,7 @@ jobs:
           gha-cache-key: cache0
           named-caches-hash: ${{ hashFiles('3rdparty/python/*.lock') }}
       - run: |
-          pants test ::
+          ./scripts/pants-with-snapshot-sandbox.sh test ::
   lint:
     runs-on: ubuntu-latest
     steps:
