@@ -1,3 +1,4 @@
+import json
 import sys
 from pathlib import Path
 from typing import List, Optional
@@ -158,9 +159,10 @@ def recent(ctx, output_format):
 
 
 @cli.command()
-@click.option("--format", "output_format", default="json")
+@click.option("--format", "output_format", default=None)
 @click.pass_context
 def report(ctx, output_format):
+    reports = []
     list_reporter = ListReporter()
     table_reporter = TableReporter()
     diff_reporter = DiffReporter()
@@ -168,14 +170,26 @@ def report(ctx, output_format):
 
     for metric_name in ctx.obj.iter_metric_names():
         report_data = api.gather_report_data(ctx.obj, metric_name)
+        reports.append(report_data)
         table_reporter.add(report_data)
         list_reporter.add(report_data)
         diff_reporter.add(report_data)
         status_reporter.add(report_data)
 
-    print(table_reporter.get_value())
-    print(diff_reporter.get_value())
-    print(list_reporter.get_value())
+    if output_format == "json":
+        output = {
+            "reports": [report.model_dump(mode="json") for report in reports],
+            "table": table_reporter.get_value(),
+            "list": list_reporter.get_value(),
+            "diff": diff_reporter.get_value(),
+        }
+        print(json.dumps(output, indent=2))
+    else:
+        print(table_reporter.get_value())
+        print("")
+        print(list_reporter.get_value())
+        print("")
+        print(diff_reporter.get_value())
     if not status_reporter.get_value():
         ctx.exit(1)
 

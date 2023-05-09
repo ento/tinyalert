@@ -5,24 +5,17 @@ inputs:
     description: 'Name of metrics defined in config to measure'
     required: false
   report:
-    description: 'Whether to report metric statuses'
-    type: boolean
+    description: 'Set to true to report metric statuses'
     required: false
-    default: false
+    default: 'false'
   prune:
     description: 'Prune measured values while keeping the specified number of values per metric'
-    type: number
     default: null
     required: false
   install:
-    description: 'Make tinyalert CLI available as a command'
-    type: boolean
+    description: 'Set to true to install tinyalert CLI'
     required: false
-    default: false
-  report-format:
-    description: 'Output format of report'
-    required: true
-    default: 'markdown'
+    default: 'false'
   db-path:
     description: 'Path to SQLite database to save metrics data'
     required: true
@@ -33,9 +26,18 @@ outputs:
   outcome:
     description: 'Report outcome: ok or alert'
     value: "${{ steps.report.outputs.outcome }}"
-  report:
-    description: 'Report content'
-    value: "${{ steps.report.outputs.report }}"
+  reports:
+    description: 'Report data'
+    value: "${{ steps.report.outputs.reports }}"
+  table:
+    description: 'Report output in table format'
+    value: "${{ steps.report.outputs.table }}"
+  list:
+    description: 'Report output in list format'
+    value: "${{ steps.report.outputs.list }}"
+  diff:
+    description: 'Report output in diff format'
+    value: "${{ steps.report.outputs.diff }}"
 runs:
   using: "composite"
   steps:
@@ -61,7 +63,7 @@ runs:
       shell: python
       env:
         action_path: ${{ github.action_path }}
-      if: ${{ inputs.install }}
+      if: ${{ inputs.install == 'true' }}
     - name: measure
       run: |
         "${{ github.action_path }}dist/app.pex" "${{ inputs.db-path }}" measure --config "${{ inputs.config-path }}" --metrics "${{ inputs.measure }}"
@@ -69,6 +71,7 @@ runs:
       if: ${{ inputs.measure }}
     - name: report
       run: |
+          import json
           import os
           import os.path
           import subprocess
@@ -80,20 +83,22 @@ runs:
               os.environ["DB_PATH"],
               "report",
               "--format",
-              os.environ["REPORT_FORMAT"],
+              "json",
           ], capture_output=True, text=True)
-          output = proc.stdout
+          output = json.loads(proc.stdout)
           outcome = "ok" if proc.returncode == 0 else "alert"
           eof = uuid4()
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf8", newline="") as f:
-              f.write(f"report<<{eof}{os.linesep}{output}{os.linesep}{eof}{os.linesep}")
+              f.write(f"reports<<{eof}{os.linesep}{output['reports']}{os.linesep}{eof}{os.linesep}")
+              f.write(f"table<<{eof}{os.linesep}{output['table']}{os.linesep}{eof}{os.linesep}")
+              f.write(f"list<<{eof}{os.linesep}{output['list']}{os.linesep}{eof}{os.linesep}")
+              f.write(f"diff<<{eof}{os.linesep}{output['diff']}{os.linesep}{eof}{os.linesep}")
               f.write(f"outcome<<{eof}{os.linesep}{outcome}{os.linesep}{eof}{os.linesep}")
       env:
         DB_PATH: ${{ inputs.db-path }}
-        REPORT_FORMAT: ${{ inputs.report-format }}
       shell: python
       id: report
-      if: ${{ inputs.report }}
+      if: ${{ inputs.report == 'true' }}
     - name: prune
       run: |
         "${{ github.action_path }}dist/app.pex" "${{ inputs.db-path }}" prune --keep "${{ inputs.prune }}"

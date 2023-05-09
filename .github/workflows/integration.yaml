@@ -57,12 +57,18 @@ jobs:
         shell: python
         env:
           outcome: ${{ steps.act.outputs.outcome }}
-          report: ${{ steps.act.outputs.report }}
           expected_outcome: ${{ matrix.expected-outcome }}
+          reports: ${{ steps.act.outputs.reports }}
+          table: ${{ steps.act.outputs.table }}
+          list: ${{ steps.act.outputs.list }}
+          diff: ${{ steps.act.outputs.diff }}
         run: |
           import os
-          assert os.environ["outcome"] == os.environ["expected_outcome"], f"{os.environ['outcome']} != {os.environ['expected_outcome']}:\n{os.environ['report']}"
-          assert os.environ["report"]
+          assert os.environ["outcome"] == os.environ["expected_outcome"], f"{os.environ['outcome']} != {os.environ['expected_outcome']}:\n{os.environ['reports']}"
+          assert os.environ["reports"]
+          assert os.environ["table"]
+          assert os.environ["list"]
+          assert os.environ["diff"]
       - name: prune
         uses: ./
         with:
