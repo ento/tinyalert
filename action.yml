@@ -54,7 +54,7 @@ runs:
         app_path = action_path / "dist" / "app.pex"
         bin_path.write_text(textwrap.dedent(f"""
         #!/usr/bin/env bash
-        exec "{app_path}" "$@"
+        exec python3 "{app_path}" "$@"
         """))
         bin_path.chmod(0o755)
 
@@ -79,6 +79,7 @@ runs:
 
           script_path = os.path.join(os.environ["GITHUB_ACTION_PATH"], "dist/app.pex")
           proc = subprocess.run([
+              "python3",
               script_path,
               os.environ["DB_PATH"],
               "report",
@@ -101,6 +102,6 @@ runs:
       if: ${{ inputs.report == 'true' }}
     - name: prune
       run: |
-        "${{ github.action_path }}dist/app.pex" "${{ inputs.db-path }}" prune --keep "${{ inputs.prune }}"
+        python3 "${{ github.action_path }}dist/app.pex" "${{ inputs.db-path }}" prune --keep "${{ inputs.prune }}"
       shell: bash
       if: ${{ inputs.prune }}
