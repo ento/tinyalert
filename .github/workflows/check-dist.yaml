@@ -12,21 +12,23 @@ on:
       - '**.md'
   workflow_dispatch:
 
-env:
-  PYTHON_SEARCH_PATH: "<PATH>"
-
 jobs:
   check-dist:
-    runs-on: ubuntu-20.04 # python 3.8
+    runs-on: ubuntu-latest
+    env:
+      PYTHON_SEARCH_PATH: "<PATH>"
     steps:
       - uses: actions/checkout@v3
+      - uses: cachix/install-nix-action@v20
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
       - name: init pants
         uses: pantsbuild/actions/init-pants@main
         with:
           gha-cache-key: cache0
           named-caches-hash: ${{ hashFiles('3rdparty/python/*.lock') }}
       - run: |
-          pants package ::
+          nix develop --command pants package ::
       - name: Compare the expected and actual dist/ directories
         run: |
           if [ "$(git diff --ignore-space-at-eol dist/ | wc -l)" -gt "0" ]; then
