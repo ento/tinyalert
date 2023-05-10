@@ -29,7 +29,7 @@ jobs:
           named-caches-hash: ${{ hashFiles('3rdparty/python/*.lock') }}
       - run: |
           nix develop --command bash -c 'echo $PYTHON_SEARCH_PATH'
-          nix develop --command ./pants package ::
+          nix develop --command ./pants -ldebug package ::
       - name: Compare the expected and actual dist/ directories
         run: |
           if [ "$(git diff --ignore-space-at-eol dist/ | wc -l)" -gt "0" ]; then
