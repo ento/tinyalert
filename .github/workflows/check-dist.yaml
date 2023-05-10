@@ -29,7 +29,9 @@ jobs:
           named-caches-hash: ${{ hashFiles('3rdparty/python/*.lock') }}
       - run: |
           nix develop --command bash -c 'echo $PYTHON_SEARCH_PATH'
-          nix develop --command ./pants -ldebug package ::
+          nix develop --command ./pants --keep-sandboxes=always -ldebug package ::
+          unzip -qc dist/app.pex PEX-INFO | python -mjson.tool
+          find $HOME
       - name: Compare the expected and actual dist/ directories
         run: |
           if [ "$(git diff --ignore-space-at-eol dist/ | wc -l)" -gt "0" ]; then
@@ -43,4 +45,6 @@ jobs:
         if: ${{ failure() && steps.diff.conclusion == 'failure' }}
         with:
           name: dist
-          path: dist/
+          path: |
+            dist/
+            /tmp/nix-shell.*/pants-sandbox-*/.cache/pex_root/bootstraps
