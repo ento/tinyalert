@@ -7,6 +7,11 @@ backend_packages = [
   "pants.backend.python.lint.isort",
 ]
 
+[pex-cli]
+version = "v2.1.112"
+url_template = "https://github.com/ento/pex/releases/download/{version}/pex"
+known_versions = ["v2.1.112|linux_x86_64|ba686ad3004de7874fbb4d7bb709727c4c9f8c9adb56b1f983d1321a3f0bb77c|4098297"]
+
 [python]
 interpreter_constraints = [">=3.8,<4"]
 enable_resolves = true
