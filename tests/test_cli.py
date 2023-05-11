@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from typing import List
 
 import pytest
@@ -159,12 +160,13 @@ def test_measure_non_existent_metric(runner, temp_dir, write_config):
 
 def test_combine_works(runner, create_db):
     dest = create_db("combined.db")
-    src = create_db("coverage.db")
+    Path("src").mkdir(parents=True, exist_ok=True)
+    src = create_db("src/coverage.db")
     api.push(dest, "errors", value=1)
     api.push(src, "coverage", value=4)
 
     result = runner.invoke(
-        cli, [str(dest.db_path), "combine", str(src.db_path)], catch_exceptions=False
+        cli, [str(dest.db_path), "combine", "src/*.db"], catch_exceptions=False
     )
     assert result.exit_code == 0, result.output
 

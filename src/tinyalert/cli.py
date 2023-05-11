@@ -144,10 +144,14 @@ def measure(
 
 
 @cli.command()
-@click.argument("src_db_path", nargs=-1)
+@click.argument("src_db_pattern", nargs=-1)
 @click.pass_context
-def combine(ctx, src_db_path):
-    src_dbs = [db.DB(p) for p in src_db_path]
+def combine(ctx, src_db_pattern):
+    src_dbs = [
+        db.DB(path)
+        for pattern in src_db_pattern
+        for path in ([pattern] if Path(pattern).is_absolute() else Path().glob(pattern))
+    ]
     api.combine(ctx.obj, src_dbs)
 
 
