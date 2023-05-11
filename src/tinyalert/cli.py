@@ -81,7 +81,11 @@ def split_values(ctx, param, value):
 
 @cli.command()
 @click.option(
-    "--config", "-c", "config_path", type=click.Path(exists=True, path_type=Path)
+    "--config",
+    "-c",
+    "config_path",
+    type=click.Path(exists=True, path_type=Path),
+    default="tinyalert.toml",
 )
 @click.option(
     "--metrics",
