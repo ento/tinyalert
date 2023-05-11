@@ -34,6 +34,8 @@ def test_push_with_all_fields(db):
         ("test.md", "file-raw", 10),
         ("cat test.md", "exec-lines", 1),
         ("cat test.md", "exec-raw", 10),
+        ("cat test.md | cat", "shell-lines", 1),
+        ("cat test.md | cat", "shell-raw", 10),
     ],
 )
 def test_measure(monkeypatch, tmp_path, source, method, expected):
@@ -47,7 +49,11 @@ def test_measure(monkeypatch, tmp_path, source, method, expected):
 
 @pytest.mark.parametrize(
     "source,method,expected",
-    [("test.md", "file", "hello"), ("cat test.md", "exec", "hello")],
+    [
+        ("test.md", "file", "hello"),
+        ("cat test.md", "exec", "hello"),
+        ("cat test.md | cat", "shell", "hello"),
+    ],
 )
 def test_eval_source(monkeypatch, tmp_path, source, method, expected):
     tmp_path.joinpath("test.md").write_text("hello")

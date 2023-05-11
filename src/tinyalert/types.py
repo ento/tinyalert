@@ -29,6 +29,7 @@ class Point(BaseModel):
 
 class SourceType(str, enum.Enum):
     exec_ = "exec"
+    shell = "shell"
     file_ = "file"
 
 

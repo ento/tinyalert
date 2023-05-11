@@ -59,6 +59,8 @@ def measure(source: str, method: MeasureType) -> MeasureResult:
 def eval_source(source: str, method: SourceType) -> str:
     if method == SourceType.exec_:
         return subprocess.check_output(shlex.split(source), text=True).strip()
+    if method == SourceType.shell:
+        return subprocess.check_output(source, shell=True, text=True).strip()
     if method == SourceType.file_:
         return Path(source).read_text()
     raise Exception(f"Unknown source type: {method}")
