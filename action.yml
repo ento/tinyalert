@@ -41,6 +41,11 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - uses: actions/setup-python@v4
+      id: py
+      with:
+        python-version: '3.8'
+        update-environment: false
     - name: install
       run: |
         import os
@@ -54,7 +59,7 @@ runs:
         app_path = action_path / "dist" / "app.pex"
         bin_path.write_text(textwrap.dedent(f"""
         #!/usr/bin/env bash
-        exec python3.8 "{app_path}" "$@"
+        exec ${{ steps.py.outputs.python-path }} "{app_path}" "$@"
         """))
         bin_path.chmod(0o755)
 
@@ -66,7 +71,7 @@ runs:
       if: ${{ inputs.install == 'true' }}
     - name: measure
       run: |
-        python3.8 "${{ github.action_path }}dist/app.pex" "${{ inputs.db-path }}" measure --config "${{ inputs.config-path }}" --metrics "${{ inputs.measure }}"
+        ${{ steps.py.outputs.python-path }} "${{ github.action_path }}dist/app.pex" "${{ inputs.db-path }}" measure --config "${{ inputs.config-path }}" --metrics "${{ inputs.measure }}"
       shell: bash
       if: ${{ inputs.measure }}
     - name: report
@@ -79,7 +84,7 @@ runs:
 
           script_path = os.path.join(os.environ["GITHUB_ACTION_PATH"], "dist/app.pex")
           proc = subprocess.run([
-              "python3.8",
+              "${{ steps.py.outputs.python-path }}",
               script_path,
               os.environ["DB_PATH"],
               "report",
@@ -102,6 +107,6 @@ runs:
       if: ${{ inputs.report == 'true' }}
     - name: prune
       run: |
-        python3.8 "${{ github.action_path }}dist/app.pex" "${{ inputs.db-path }}" prune --keep "${{ inputs.prune }}"
+        ${{ steps.py.outputs.python-path }} "${{ github.action_path }}dist/app.pex" "${{ inputs.db-path }}" prune --keep "${{ inputs.prune }}"
       shell: bash
       if: ${{ inputs.prune }}
