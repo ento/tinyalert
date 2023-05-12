@@ -53,7 +53,7 @@ def snapshot(snapshot: SnapshotAssertion) -> SnapshotAssertion:
 @pytest.fixture
 def create_db(tmp_path):
     def _create_db(filename: str):
-        db = DB(tmp_path / filename)
+        db = DB(tmp_path / filename, verbose=True)
         db.migrate()
         return db
 
