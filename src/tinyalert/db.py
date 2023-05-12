@@ -34,9 +34,7 @@ class Point(Base):
 
 class DB:
     def __init__(self, db_path: Path, verbose: bool = False):
-        self.engine = create_engine(
-            f"sqlite:///{db_path}", echo=verbose, isolation_level="READ UNCOMMITTED"
-        )
+        self.engine = create_engine(f"sqlite:///{db_path}", echo=verbose)
         self.db_path = db_path
 
     def add(self, point: types.Point):
