@@ -163,7 +163,7 @@ class DiffReporter:
 
         </details>
         """
-        ).format(**metric_diff.dict())
+        ).format(**metric_diff.model_dump())
 
 
 class StatusReporter:

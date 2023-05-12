@@ -74,8 +74,6 @@ def test_push(runner, temp_dir):
             "diffable",
             "--url",
             "url",
-            "--ignore",
-            "rel",
         ],
         catch_exceptions=False,
     )
@@ -91,7 +89,6 @@ def test_push(runner, temp_dir):
     assert recents[0]["measure_source"] == "source"
     assert recents[0]["diffable_content"] == "diffable"
     assert recents[0]["url"] == "url"
-    assert recents[0]["ignore"] == "rel"
 
 
 # measure
@@ -216,28 +213,27 @@ def test_report_exits_with_error_when_latest_value_violates_threshold(runner, db
     assert result.exit_code == 1, result
 
 
-def test_report_can_skip_latest_value(runner, db):
-    # TODO: test the same with measure
-    push_result = runner.invoke(
-        cli,
-        [
-            str(db.db_path),
-            "push",
-            "errors",
-            "--value",
-            "10",
-            "--abs-max",
-            0,
-            "--ignore",
-            "all",
-        ],
-        catch_exceptions=False,
+def test_report_doesnt_alert_when_no_alert(runner, db):
+    api.push(db, "errors", value=10, absolute_max=0)
+
+    result = runner.invoke(
+        cli, [str(db.db_path), "report", "--no-alert"], catch_exceptions=False
     )
-    assert push_result.exit_code == 0, push_result
+
+    assert result.exit_code == 0, result.output
+
+
+def test_report_with_previous_no_alert_skips_previous_value(runner, db):
+    api.push(db, "errors", value=10, absolute_max=0)
+    no_alert_result = runner.invoke(
+        cli, [str(db.db_path), "report", "--no-alert"], catch_exceptions=False
+    )
+    assert no_alert_result.exit_code == 0, no_alert_result.output
+    api.push(db, "errors", value=20, relative_max=0)
 
     result = runner.invoke(cli, [str(db.db_path), "report"], catch_exceptions=False)
 
-    assert result.exit_code == 0, result.output
+    assert result.exit_code == 0, no_alert_result.output + "\n" + result.output
 
 
 # prune

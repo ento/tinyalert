@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Generator, Optional
 
 import alembic.config
-from sqlalchemy import create_engine, delete, select
+from sqlalchemy import create_engine, delete, select, update
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 from sqlalchemy.types import TEXT, String
 
@@ -26,7 +26,7 @@ class Point(Base):
     absolute_min: Mapped[Optional[float]] = mapped_column()
     relative_max: Mapped[Optional[float]] = mapped_column()
     relative_min: Mapped[Optional[float]] = mapped_column()
-    ignore: Mapped[Optional[types.IgnoreType]] = mapped_column()
+    skipped: Mapped[bool] = mapped_column(server_default="0")
     measure_source: Mapped[Optional[str]] = mapped_column(TEXT)
     diffable_content: Mapped[Optional[str]] = mapped_column(TEXT)
     url: Mapped[Optional[str]] = mapped_column()
@@ -50,22 +50,40 @@ class DB:
                     absolute_min=point.absolute_min,
                     relative_max=point.relative_max,
                     relative_min=point.relative_min,
-                    ignore=point.ignore,
                     measure_source=point.measure_source,
                     diffable_content=point.diffable_content,
                     url=point.url,
+                    skipped=point.skipped,
                 )
             )
             session.commit()
         return point
 
+    def skip_latest(self, metric_name: str):
+        to_update = (
+            select(Point.id)
+            .filter_by(metric_name=metric_name)
+            .order_by(Point.time.desc(), Point.id.desc())
+            .limit(1)
+        )
+        query = (
+            update(Point)
+            .values(skipped=True)
+            .where(Point.id.in_(to_update.scalar_subquery()))
+        )
+        with self.session() as session:
+            session.execute(query)
+            session.commit()
+
     def recent(
-        self, metric_name: Optional[str] = None, count: int = 10
+        self, metric_name: Optional[str] = None, count: Optional[int] = 10
     ) -> Generator[types.Point, None, None]:
         query = select(Point)
         if metric_name is not None:
             query = query.filter_by(metric_name=metric_name)
-        query = query.order_by(Point.time.desc(), Point.id.desc()).limit(count)
+        query = query.order_by(Point.time.desc(), Point.id.desc())
+        if count is not None:
+            query = query.limit(count)
         with self.session() as session:
             for row in session.execute(query):
                 yield types.Point.model_validate(row[0])
@@ -96,7 +114,7 @@ class DB:
                 count += session.execute(
                     delete(Point).where(Point.id.in_(to_delete.scalar_subquery()))
                 ).rowcount
-                session.commit()
+            session.commit()
         return count
 
     def migrate(self):

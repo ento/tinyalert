@@ -8,7 +8,7 @@ import tomli
 
 from . import api, db
 from .reporters import DiffReporter, ListReporter, StatusReporter, TableReporter
-from .types import Config, IgnoreType
+from .types import Config
 
 
 @click.group()
@@ -31,12 +31,6 @@ def cli(ctx, db_path):
     "--diffable", default=None, help="Text content suitable for showing diffs"
 )
 @click.option("--url", default=None, help="URL")
-@click.option(
-    "--ignore",
-    default=None,
-    type=click.Choice(IgnoreType),
-    help="Do not alert on this data point",
-)
 @click.pass_context
 def push(
     ctx,
@@ -49,7 +43,6 @@ def push(
     source,
     diffable,
     url,
-    ignore,
 ):
     if value is None:
         value = float(sys.stdin.read().strip())
@@ -66,7 +59,6 @@ def push(
         absolute_min=abs_min,
         relative_max=rel_max,
         relative_min=rel_min,
-        ignore=ignore,
         measure_source=source,
         diffable_content=diffable,
         url=url,
@@ -94,19 +86,12 @@ def split_values(ctx, param, value):
     help="Comma-separated names of metrics to measure",
 )
 @click.option("--url", default=None, help="URL")
-@click.option(
-    "--ignore",
-    type=click.Choice(IgnoreType),
-    default=None,
-    help="Do not alert on this data point",
-)
 @click.pass_context
 def measure(
     ctx: click.Context,
     config_path: Path,
     metrics: Optional[List[str]],
     url: Optional[str],
-    ignore: Optional[IgnoreType],
 ):
     raw = tomli.loads(Path(config_path).read_text())
     config = Config.model_validate(raw)
@@ -136,7 +121,6 @@ def measure(
             absolute_min=metric.absolute_min,
             relative_max=metric.relative_max,
             relative_min=metric.relative_min,
-            ignore=ignore,
             measure_source=result.source,
             diffable_content=diffable_content,
             url=url,
@@ -168,8 +152,14 @@ def recent(ctx, output_format):
 
 @cli.command()
 @click.option("--format", "output_format", default=None)
+@click.option(
+    "--no-alert",
+    is_flag=True,
+    default=False,
+    help="Don't exit with an error. Mark latest data points as skipped if they violate a threshold.",
+)
 @click.pass_context
-def report(ctx, output_format):
+def report(ctx, output_format, no_alert):
     reports = []
     list_reporter = ListReporter()
     table_reporter = TableReporter()
@@ -178,6 +168,8 @@ def report(ctx, output_format):
 
     for metric_name in ctx.obj.iter_metric_names():
         report_data = api.gather_report_data(ctx.obj, metric_name)
+        if no_alert and report_data.violates_limits:
+            api.skip_latest(ctx.obj, metric_name)
         reports.append(report_data)
         table_reporter.add(report_data)
         list_reporter.add(report_data)
@@ -198,7 +190,7 @@ def report(ctx, output_format):
         print(list_reporter.get_value())
         print("")
         print(diff_reporter.get_value())
-    if not status_reporter.get_value():
+    if not status_reporter.get_value() and not no_alert:
         ctx.exit(1)
 
 

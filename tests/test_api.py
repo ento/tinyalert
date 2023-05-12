@@ -62,6 +62,20 @@ def test_eval_source(monkeypatch, tmp_path, source, method, expected):
     assert api.eval_source(source, method) == expected
 
 
+def test_skip_latest(db):
+    api.push(db, "errors", value=1)
+    api.push(db, "errors", value=7)
+    api.push(db, "coverage", value=4)
+
+    api.skip_latest(db, "errors")
+
+    points = list(db.recent(count=3))
+
+    assert len(points) == 3
+    assert [p.metric_value for p in points] == [4, 7, 1]
+    assert [p.skipped for p in points] == [False, True, False]
+
+
 def test_combine_with_minimum_data(db, create_db, freezer):
     src = create_db("coverage.db")
     api.push(db, "errors", value=1)
@@ -203,7 +217,7 @@ def test_gather_report_data_when_two_points(db):
     data = api.gather_report_data(db, "errors")
 
     assert data.metric_name == "errors"
-    assert data.latest_values == [2.0, 1.0]
+    assert data.latest_values == [1.0, 2.0]
     assert data.latest_value == 2
     assert data.previous_value == 1
     assert data.absolute_max is None
@@ -213,3 +227,20 @@ def test_gather_report_data_when_two_points(db):
     assert data.latest_diffable_content == "latest"
     assert data.previous_diffable_content == "previous"
     assert data.url == "current_url"
+
+
+def test_gather_report_data_dont_alert_on_skipped_data(db):
+    api.push(db, "errors", value=1)
+    api.skip_latest(db, "errors")
+    api.push(db, "errors", value=2)
+    api.push(db, "errors", value=3)
+    api.skip_latest(db, "errors")
+    api.push(db, "errors", value=4)
+    api.skip_latest(db, "errors")
+
+    data = api.gather_report_data(db, "errors")
+
+    assert data.metric_name == "errors"
+    assert data.latest_values == [1.0, 2.0, 3.0, 4.0]
+    assert data.latest_value == 4
+    assert data.previous_value == 2

@@ -6,11 +6,6 @@ from typing import List, Optional
 from pydantic import BaseModel, Field, field_validator, root_validator
 
 
-class IgnoreType(str, enum.Enum):
-    relative = "rel"
-    all_ = "all"
-
-
 class Point(BaseModel):
     metric_name: str
     time: datetime.datetime
@@ -19,10 +14,10 @@ class Point(BaseModel):
     absolute_min: Optional[float]
     relative_max: Optional[float]
     relative_min: Optional[float]
-    ignore: Optional[IgnoreType]
     measure_source: Optional[str]
     diffable_content: Optional[str]
     url: Optional[str]
+    skipped: bool = False
 
     model_config = dict(from_attributes=True)
 
@@ -98,7 +93,6 @@ class ReportData(BaseModel):
     absolute_min: Optional[float] = None
     relative_max: Optional[float] = None
     relative_min: Optional[float] = None
-    ignore: Optional[IgnoreType] = None
     latest_diffable_content: Optional[str] = None
     previous_diffable_content: Optional[str] = None
     url: Optional[str] = None
@@ -139,17 +133,11 @@ class ReportData(BaseModel):
 
     @cached_property
     def violates_absolute_limits(self) -> bool:
-        if self.violates_absolute_max or self.violates_absolute_min:
-            if self.ignore != IgnoreType.all_:
-                return True
-        return False
+        return self.violates_absolute_max or self.violates_absolute_min
 
     @cached_property
     def violates_relative_limits(self) -> bool:
-        if self.violates_relative_max or self.violates_relative_min:
-            if self.ignore is None:
-                return True
-        return False
+        return self.violates_relative_max or self.violates_relative_min
 
     @cached_property
     def violates_limits(self) -> bool:

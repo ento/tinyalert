@@ -88,26 +88,22 @@ def test_report_data_violates_relative_min(rel_min, value, prev, expected):
 
 
 @pytest.mark.parametrize(
-    "violates_max,violates_min,ignore,expected",
+    "violates_max,violates_min,skipped,expected",
     [
-        (True, True, None, True),
-        (True, False, None, True),
-        (False, True, None, True),
-        (False, False, None, False),
-        (True, True, "rel", True),
-        (True, False, "rel", True),
-        (False, True, "rel", True),
-        (False, False, "rel", False),
-        (True, True, "all", False),
-        (True, False, "all", False),
-        (False, True, "all", False),
-        (False, False, "all", False),
+        (True, True, False, True),
+        (True, False, False, True),
+        (False, True, False, True),
+        (False, False, False, False),
+        (True, True, True, True),
+        (True, False, True, True),
+        (False, True, True, True),
+        (False, False, True, False),
     ],
 )
 def test_report_data_violates_absolute_limits(
-    monkeypatch, violates_max, violates_min, ignore, expected
+    monkeypatch, violates_max, violates_min, skipped, expected
 ):
-    data = ReportData.model_validate(dict(metric_name="test", ignore=ignore))
+    data = ReportData.model_validate(dict(metric_name="test", skipped=skipped))
     monkeypatch.setattr(ReportData, "violates_absolute_max", violates_max)
     monkeypatch.setattr(ReportData, "violates_absolute_min", violates_min)
 
@@ -115,26 +111,22 @@ def test_report_data_violates_absolute_limits(
 
 
 @pytest.mark.parametrize(
-    "violates_max,violates_min,ignore,expected",
+    "violates_max,violates_min,skipped,expected",
     [
-        (True, True, None, True),
-        (True, False, None, True),
-        (False, True, None, True),
-        (False, False, None, False),
-        (True, True, "rel", False),
-        (True, False, "rel", False),
-        (False, True, "rel", False),
-        (False, False, "rel", False),
-        (True, True, "all", False),
-        (True, False, "all", False),
-        (False, True, "all", False),
-        (False, False, "all", False),
+        (True, True, False, True),
+        (True, False, False, True),
+        (False, True, False, True),
+        (False, False, False, False),
+        (True, True, True, True),
+        (True, False, True, True),
+        (False, True, True, True),
+        (False, False, True, False),
     ],
 )
-def test_report_data_violates_reolative_limits(
-    monkeypatch, violates_max, violates_min, ignore, expected
+def test_report_data_violates_relative_limits(
+    monkeypatch, violates_max, violates_min, skipped, expected
 ):
-    data = ReportData.model_validate(dict(metric_name="test", ignore=ignore))
+    data = ReportData.model_validate(dict(metric_name="test", skipped=skipped))
     monkeypatch.setattr(ReportData, "violates_relative_max", violates_max)
     monkeypatch.setattr(ReportData, "violates_relative_min", violates_min)
 
