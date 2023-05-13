@@ -21,13 +21,13 @@ class EscapePantsSandboxExtension(AmberSnapshotExtension):
     (see scripts/pants-with-snapshot-sandbox.sh).
     """
 
-    @property
-    def _dirname(self) -> str:
+    @classmethod
+    def dirname(cls, *, test_location) -> str:
         # Changes here should also be applied to any other extensions
         # (search for imports/uses of 'syrupy.extensions')
 
         # /tmp/whatever/tests/something/__snapshots__
-        original = super()._dirname
+        original = super().dirname(test_location=test_location)
 
         # duplicated root directory, set from original invocation via pants.toml
         # and scripts/pants-with-snapshot-sandbox.sh

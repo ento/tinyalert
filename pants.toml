@@ -19,7 +19,7 @@ known_versions = [
 ]
 
 [python]
-interpreter_constraints = [">=3.8,<4"]
+interpreter_constraints = [">=3.8.1,<4"]
 enable_resolves = true
 
 [python-bootstrap]
