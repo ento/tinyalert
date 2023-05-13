@@ -212,7 +212,9 @@ def test_report_exits_with_error_when_latest_value_violates_threshold(runner, db
 
     assert result.exit_code == 1, result
 
-    json_result = runner.invoke(cli, [str(db.db_path), "report", "--format", "json"], catch_exceptions=False)
+    json_result = runner.invoke(
+        cli, [str(db.db_path), "report", "--format", "json"], catch_exceptions=False
+    )
 
     assert json_result.exit_code == 1, json_result
     report = json.loads(json_result.stdout)
@@ -231,7 +233,11 @@ def test_report_doesnt_alert_when_no_alert(runner, db):
 
     assert result.exit_code == 0, result.output
 
-    json_result = runner.invoke(cli, [str(db.db_path), "report", "--no-alert", "--format", "json"], catch_exceptions=False)
+    json_result = runner.invoke(
+        cli,
+        [str(db.db_path), "report", "--no-alert", "--format", "json"],
+        catch_exceptions=False,
+    )
 
     assert json_result.exit_code == 0, json_result
     report = json.loads(json_result.stdout)
