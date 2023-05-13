@@ -174,12 +174,15 @@ def report(ctx, output_format, alert):
         diff_reporter.add(report_data)
         status_reporter.add(report_data)
 
+    should_alert = not status_reporter.get_value() and alert
+
     if output_format == "json":
         output = {
             "reports": [report.model_dump(mode="json") for report in reports],
             "table": table_reporter.get_value(),
             "list": list_reporter.get_value(),
             "diff": diff_reporter.get_value(),
+            "alert": should_alert,
         }
         print(json.dumps(output, indent=2))
     else:
@@ -188,7 +191,8 @@ def report(ctx, output_format, alert):
         print(list_reporter.get_value())
         print("")
         print(diff_reporter.get_value())
-    if not status_reporter.get_value() and alert:
+
+    if should_alert:
         ctx.exit(1)
 
 

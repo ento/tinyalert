@@ -212,6 +212,15 @@ def test_report_exits_with_error_when_latest_value_violates_threshold(runner, db
 
     assert result.exit_code == 1, result
 
+    json_result = runner.invoke(cli, [str(db.db_path), "report", "--format", "json"], catch_exceptions=False)
+
+    assert json_result.exit_code == 1, json_result
+    report = json.loads(json_result.stdout)
+    assert report["table"]
+    assert report["list"]
+    assert report["diff"]
+    assert report["alert"]
+
 
 def test_report_doesnt_alert_when_no_alert(runner, db):
     api.push(db, "errors", value=10, absolute_max=0)
@@ -221,6 +230,15 @@ def test_report_doesnt_alert_when_no_alert(runner, db):
     )
 
     assert result.exit_code == 0, result.output
+
+    json_result = runner.invoke(cli, [str(db.db_path), "report", "--no-alert", "--format", "json"], catch_exceptions=False)
+
+    assert json_result.exit_code == 0, json_result
+    report = json.loads(json_result.stdout)
+    assert report["table"]
+    assert report["list"]
+    assert report["diff"]
+    assert not report["alert"]
 
 
 def test_report_with_previous_no_alert_skips_previous_value(runner, db):
