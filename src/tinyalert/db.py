@@ -36,6 +36,7 @@ class DB:
     def __init__(self, db_path: Path, verbose: bool = False):
         self.engine = create_engine(f"sqlite:///{db_path}", echo=verbose)
         self.db_path = db_path
+        self._migrated = False
 
     def add(self, point: types.Point):
         with self.session() as session:
@@ -123,6 +124,9 @@ class DB:
 
     @contextlib.contextmanager
     def session(self) -> Generator[Session, None, None]:
+        if not self._migrated:
+            self.migrate()
+            self._migrated = True
         with Session(self.engine) as session:
             yield session
 

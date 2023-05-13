@@ -16,7 +16,6 @@ from .types import Config
 @click.pass_context
 def cli(ctx, db_path):
     ctx.obj = db.DB(db_path)
-    ctx.obj.migrate()
 
 
 @cli.command()
