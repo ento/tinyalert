@@ -62,4 +62,4 @@ def create_db(tmp_path):
 
 @pytest.fixture
 def db(create_db):
-    return create_db("tinyalert.db")
+    return create_db("metrics/tinyalert.db")

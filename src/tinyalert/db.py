@@ -2,7 +2,7 @@ import contextlib
 import datetime
 from argparse import Namespace
 from pathlib import Path
-from typing import Generator, Optional
+from typing import Generator, Optional, Union
 
 import alembic.config
 from sqlalchemy import create_engine, delete, select, update
@@ -33,9 +33,9 @@ class Point(Base):
 
 
 class DB:
-    def __init__(self, db_path: Path, verbose: bool = False):
+    def __init__(self, db_path: Union[Path, str], verbose: bool = False):
         self.engine = create_engine(f"sqlite:///{db_path}", echo=verbose)
-        self.db_path = db_path
+        self.db_path = Path(db_path)
         self._migrated = False
 
     def add(self, point: types.Point):
@@ -117,6 +117,7 @@ class DB:
         return count
 
     def migrate(self):
+        self._ensure_dir()
         self.run_alembic("upgrade", "head")
 
     def run_alembic(self, *args):
@@ -124,11 +125,15 @@ class DB:
 
     @contextlib.contextmanager
     def session(self) -> Generator[Session, None, None]:
+        self._ensure_dir()
         if not self._migrated:
             self.migrate()
             self._migrated = True
         with Session(self.engine) as session:
             yield session
+
+    def _ensure_dir(self) -> None:
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
 
 class AlembicCLI(alembic.config.CommandLine):
