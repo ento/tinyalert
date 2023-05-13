@@ -7,6 +7,10 @@ backend_packages = [
   "pants.backend.python.lint.isort",
 ]
 
+[anonymous-telemetry]
+enabled = true
+repo_id = "9a0568c1-c694-43f2-a9f9-b20efbb65174"
+
 [pex-cli]
 version = "v2.1.115"
 url_template = "https://github.com/ento/pex/releases/download/{version}/pex"
