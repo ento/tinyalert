@@ -1,6 +1,7 @@
 import os
 
 import pytest
+from syrupy import PyTestLocation
 from syrupy.assertion import SnapshotAssertion
 from syrupy.extensions.amber import AmberSnapshotExtension
 
@@ -22,7 +23,7 @@ class EscapePantsSandboxExtension(AmberSnapshotExtension):
     """
 
     @classmethod
-    def dirname(cls, *, test_location) -> str:
+    def dirname(cls, *, test_location: PyTestLocation) -> str:
         # Changes here should also be applied to any other extensions
         # (search for imports/uses of 'syrupy.extensions')
 
