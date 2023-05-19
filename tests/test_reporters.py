@@ -74,6 +74,21 @@ def test_diff_reporter_outputs(snapshot):
     assert reporter.get_value() == snapshot
 
 
+def test_diff_reporter_outputs_nothing_when_no_diffable_content(snapshot):
+    reporter = DiffReporter()
+    reporter.add(
+        ReportData(
+            metric_name="kitchen-sink",
+            latest_value=2,
+            absolute_max=0,
+            latest_diffable_content=None,
+            previous_diffable_content=None,
+        )
+    )
+
+    assert reporter.get_value() == snapshot
+
+
 @pytest.mark.parametrize(
     "violations,expected",
     [

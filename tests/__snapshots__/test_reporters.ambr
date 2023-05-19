@@ -15,6 +15,9 @@
   
   '''
 # ---
+# name: test_diff_reporter_outputs_nothing_when_no_diffable_content
+  ''
+# ---
 # name: test_list_reporter_outputs
   '''
   - kitchen-sink latest value 2: violates absolute max value of 0

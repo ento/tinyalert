@@ -250,7 +250,7 @@ def test_recent_works(runner, db):
 
 
 def test_report_exits_with_error_when_latest_value_violates_threshold(runner, db):
-    api.push(db, "errors", value=10, absolute_max=0)
+    api.push(db, "errors", value=10, absolute_max=0, diffable_content="foo")
 
     result = runner.invoke(cli, [str(db.db_path), "report"], catch_exceptions=False)
 
@@ -287,7 +287,7 @@ def test_report_doesnt_alert_when_no_alert(runner, db):
     report = json.loads(json_result.stdout)
     assert report["table"]
     assert report["list"]
-    assert report["diff"]
+    assert report["diff"] == ""
     assert not report["alert"]
 
 
