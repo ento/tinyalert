@@ -83,7 +83,13 @@ class TableReporter:
         return row
 
     def get_value(self) -> str:
-        return tabulate(self.rows, self.header, tablefmt="github")
+        header = dict(self.header)
+        rows = [dict(row) for row in self.rows]
+        if not any(row["details"] for row in rows):
+            del header["details"]
+            for row in rows:
+                del row["details"]
+        return tabulate(rows, header, tablefmt="github")
 
 
 class ListReporter:

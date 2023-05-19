@@ -31,6 +31,13 @@ def test_table_reporter_outputs(snapshot):
     assert reporter.get_value() == snapshot
 
 
+def test_table_reporter_omits_details_column_when_possible(snapshot):
+    reporter = TableReporter()
+    reporter.add(ReportData(metric_name="null"))
+
+    assert reporter.get_value() == snapshot
+
+
 def test_list_reporter_outputs(snapshot):
     reporter = ListReporter()
     reporter.add(ReportData(metric_name="null"))
