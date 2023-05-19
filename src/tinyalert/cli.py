@@ -112,6 +112,8 @@ def measure(
             diffable_content = api.eval_source(
                 metric.diffable_source, metric.diffable_type
             )
+        elif metric.measure_source_is_diffable:
+            diffable_content = result.source
         api.push(
             ctx.obj,
             metric.name,

@@ -137,6 +137,50 @@ def test_measure(runner, temp_dir, write_config, metrics_to_measure, expected):
         assert p["metric_value"] == expected[p["metric_name"]]
 
 
+@pytest.mark.parametrize(
+    "diffable_config,expected_content",
+    [
+        ({}, "foo"),
+        ({"diffable_source": "bar.txt"}, "bar"),
+        ({"measure_source_is_diffable": False}, None),
+        ({"diffable_source": "bar.txt", "measure_source_is_diffable": False}, "bar"),
+    ],
+)
+def test_measure_diffable_content(
+    runner, temp_dir, write_config, diffable_config, expected_content
+):
+    config_path = write_config(
+        [
+            MetricConfig(
+                name="foo",
+                measure_source="foo.txt",
+                measure_type="file-lines",
+                **diffable_config,
+            ),
+        ]
+    )
+    temp_dir.joinpath("foo.txt").write_text("foo")
+    temp_dir.joinpath("bar.txt").write_text("bar")
+
+    result = runner.invoke(
+        cli,
+        [
+            "db.sqlite",
+            "measure",
+            "--metrics",
+            "foo",
+            "--config",
+            config_path,
+        ],
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 0, result
+
+    recents = read_recents(runner, "db.sqlite")
+    assert len(recents) == 1
+    assert recents[0]["diffable_content"] == expected_content
+
+
 def test_measure_non_existent_metric(runner, temp_dir, write_config):
     config_path = write_config(
         [

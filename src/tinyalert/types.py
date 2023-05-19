@@ -56,6 +56,7 @@ class MetricConfig(BaseModel):
     )
     diffable_source: str = None
     diffable_type: SourceType = SourceType.file_
+    measure_source_is_diffable: bool = True
     absolute_max: Optional[float] = None
     absolute_min: Optional[float] = None
     relative_max: Optional[float] = None
