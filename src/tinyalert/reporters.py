@@ -156,7 +156,9 @@ class DiffReporter:
         )
 
     def get_value(self) -> str:
-        return "\n".join([self._format_metric_diff(diff) for diff in self.diffs if diff.diff])
+        return "\n".join(
+            [self._format_metric_diff(diff) for diff in self.diffs if diff.diff]
+        )
 
     def _format_metric_diff(self, metric_diff: MetricDiff) -> str:
         return textwrap.dedent(
