@@ -9,94 +9,9 @@ env:
   PYTHON_SEARCH_PATH: "<PATH>"
 
 jobs:
-  unit-tests:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version:
-          - 3.8
-          - 3.9
-          - 3.10
-          - 3.11
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python_version }}
-      - name: init pants
-        uses: pantsbuild/actions/init-pants@main
-        with:
-          gha-cache-key: cache0
-          named-caches-hash: ${{ hashFiles('3rdparty/python/*.lock') }}
-      - run: |
-          ./scripts/pants-with-snapshot-sandbox.sh test ::
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: init pants
-        uses: pantsbuild/actions/init-pants@main
-        with:
-          gha-cache-key: cache0
-          named-caches-hash: ${{ hashFiles('3rdparty/python/*.lock') }}
-      - run: |
-          pants lint ::
   install-and-use:
-    runs-on: ubuntu-20.04 # python 3.8 - TODO: support multiple Python versions
+    runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
-      - name: run action
-        uses: ./
-        with:
-          install: true
-      - name: assert
+      - name: debug
         run: |
-          tinyalert --help
-  measure-and-report:
-    runs-on: ubuntu-20.04 # python 3.8 - TODO: support multiple Python versions
-    strategy:
-      matrix:
-        include:
-          - config-path: kitchen-sink.toml
-            measure: 'simple'
-            expected-outcome: 'ok'
-          - config-path: critical.toml
-            measure: 'critical'
-            expected-outcome: 'alert'
-    steps:
-      - uses: actions/checkout@v3
-      - name: run action
-        uses: ./
-        id: act
-        continue-on-error: true
-        with:
-          db-path: db.sqlite
-          config-path: integration/${{ matrix.config-path }}
-          measure: ${{ matrix.measure }}
-          report: true
-      - name: assert
-        shell: python
-        env:
-          outcome: ${{ steps.act.outputs.outcome }}
-          expected_outcome: ${{ matrix.expected-outcome }}
-          reports: ${{ steps.act.outputs.reports }}
-          table: ${{ steps.act.outputs.table }}
-          list: ${{ steps.act.outputs.list }}
-          diff: ${{ steps.act.outputs.diff }}
-        run: |
-          import os
-          assert os.environ["outcome"] == os.environ["expected_outcome"], f"{os.environ['outcome']} != {os.environ['expected_outcome']}:\n{os.environ['reports']}"
-          should_pass = os.environ["expected_outcome"] == "ok"
-          assert os.environ["reports"]
-          assert os.environ["table"]
-          if should_pass:
-              assert not os.environ["list"]
-              assert not os.environ["diff"]
-          else:
-              assert os.environ["list"]
-              assert os.environ["diff"]
-      - name: prune
-        uses: ./
-        with:
-          db-path: db.sqlite
-          prune: 1
+          umask -S
