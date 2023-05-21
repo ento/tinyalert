@@ -16,6 +16,7 @@ def test_push_with_all_fields(db):
         measure_source="source",
         diffable_content="diff",
         url="test",
+        epoch=1,
     )
     assert p.metric_value == 1
     assert p.absolute_max == 2
@@ -25,6 +26,7 @@ def test_push_with_all_fields(db):
     assert p.measure_source == "source"
     assert p.diffable_content == "diff"
     assert p.url == "test"
+    assert p.epoch == 1
 
 
 @pytest.mark.parametrize(
@@ -117,7 +119,7 @@ def test_recent(db):
         diffable_content="diff",
         url="url",
     )
-    api.push(db, "warnings", value=10)
+    api.push(db, "warnings", value=10, epoch=1)
 
     points = list(db.recent(count=1))
 
@@ -131,6 +133,7 @@ def test_recent(db):
     assert points[0].measure_source is None
     assert points[0].diffable_content is None
     assert points[0].url is None
+    assert points[0].epoch == 1
 
     points = list(db.recent(count=3))
 
@@ -144,6 +147,7 @@ def test_recent(db):
     assert points[0].measure_source is None
     assert points[0].diffable_content is None
     assert points[0].url is None
+    assert points[0].epoch == 1
     assert points[1].metric_name == "errors"
     assert points[1].metric_value == 1
     assert points[1].absolute_max == 10
@@ -153,6 +157,7 @@ def test_recent(db):
     assert points[1].measure_source == "content"
     assert points[1].diffable_content == "diff"
     assert points[1].url == "url"
+    assert points[1].epoch == 0
 
 
 def test_gather_report_data_when_no_data(db):
@@ -244,3 +249,15 @@ def test_gather_report_data_dont_alert_on_skipped_data(db):
     assert data.latest_values == [1.0, 2.0, 3.0, 4.0]
     assert data.latest_value == 4
     assert data.previous_value == 2
+
+
+def test_gather_report_data_dont_alert_on_different_epoch(db):
+    api.push(db, "errors", value=1)
+    api.push(db, "errors", value=2, epoch=1)
+
+    data = api.gather_report_data(db, "errors")
+
+    assert data.metric_name == "errors"
+    assert data.latest_values == [1.0, 2.0]
+    assert data.latest_value == 2
+    assert data.previous_value is None

@@ -30,6 +30,7 @@ class Point(Base):
     measure_source: Mapped[Optional[str]] = mapped_column(TEXT)
     diffable_content: Mapped[Optional[str]] = mapped_column(TEXT)
     url: Mapped[Optional[str]] = mapped_column()
+    epoch: Mapped[int] = mapped_column(server_default="0")
 
 
 class DB:
@@ -53,6 +54,7 @@ class DB:
                     diffable_content=point.diffable_content,
                     url=point.url,
                     skipped=point.skipped,
+                    epoch=point.epoch,
                 )
             )
             session.commit()

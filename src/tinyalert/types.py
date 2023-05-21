@@ -18,6 +18,7 @@ class Point(BaseModel):
     diffable_content: Optional[str]
     url: Optional[str]
     skipped: bool = False
+    epoch: int = 0
 
     model_config = dict(from_attributes=True)
 
@@ -62,6 +63,7 @@ class MetricConfig(BaseModel):
     relative_max: Optional[float] = None
     relative_min: Optional[float] = None
     url: Optional[str] = None
+    epoch: int = 0
 
 
 class Config(BaseModel):

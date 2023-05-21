@@ -30,6 +30,7 @@ def cli(ctx, db_path):
     "--diffable", default=None, help="Text content suitable for showing diffs"
 )
 @click.option("--url", default=None, help="URL")
+@click.option("--epoch", type=int, default=0, help="Epoch number")
 @click.pass_context
 def push(
     ctx,
@@ -42,6 +43,7 @@ def push(
     source,
     diffable,
     url,
+    epoch,
 ):
     if value is None:
         value = float(sys.stdin.read().strip())
@@ -61,6 +63,7 @@ def push(
         measure_source=source,
         diffable_content=diffable,
         url=url,
+        epoch=epoch,
     )
 
 
@@ -125,6 +128,7 @@ def measure(
             measure_source=result.source,
             diffable_content=diffable_content,
             url=url,
+            epoch=metric.epoch,
         )
 
 

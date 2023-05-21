@@ -19,6 +19,7 @@ def push(
     measure_source: Optional[str] = None,
     diffable_content: Optional[str] = None,
     url: Optional[str] = None,
+    epoch: int = 0,
 ) -> Point:
     p = Point(
         metric_name=metric_name,
@@ -31,6 +32,7 @@ def push(
         measure_source=measure_source,
         diffable_content=diffable_content,
         url=url,
+        epoch=epoch,
     )
     return db.add(p)
 
@@ -106,10 +108,14 @@ def gather_report_data(db: DB, metric_name: str) -> ReportData:
 
 
 def _iter_alert_eligible_points(all_points: Sequence[Point]) -> Iterator[Point]:
+    active_epoch = None
     for i, p in enumerate(all_points):
         if i == 0:
+            active_epoch = p.epoch
             yield p
             continue
         if p.skipped:
             continue
+        if p.epoch != active_epoch:
+            break
         yield p

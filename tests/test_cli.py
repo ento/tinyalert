@@ -74,6 +74,8 @@ def test_push(runner, temp_dir):
             "diffable",
             "--url",
             "url",
+            "--epoch",
+            "1",
         ],
         catch_exceptions=False,
     )
@@ -89,6 +91,7 @@ def test_push(runner, temp_dir):
     assert recents[0]["measure_source"] == "source"
     assert recents[0]["diffable_content"] == "diffable"
     assert recents[0]["url"] == "url"
+    assert recents[0]["epoch"] == 1
 
 
 # measure
@@ -110,11 +113,13 @@ def test_measure(runner, temp_dir, write_config, metrics_to_measure, expected):
                 name="bar",
                 measure_source="grep -vc ^$ bar.txt",
                 measure_type="exec-raw",
+                epoch=1,
             ),
         ]
     )
     temp_dir.joinpath("foo.txt").write_text("1\n2\n")
     temp_dir.joinpath("bar.txt").write_text("1\n2\n3")
+    expected_epochs = {"foo": 0, "bar": 1}
 
     result = runner.invoke(
         cli,
@@ -135,6 +140,7 @@ def test_measure(runner, temp_dir, write_config, metrics_to_measure, expected):
     assert set([p["metric_name"] for p in recents]) == set(expected.keys())
     for p in recents:
         assert p["metric_value"] == expected[p["metric_name"]]
+        assert p["epoch"] == expected_epochs[p["metric_name"]]
 
 
 @pytest.mark.parametrize(
@@ -302,6 +308,15 @@ def test_report_with_previous_no_alert_skips_previous_value(runner, db):
     result = runner.invoke(cli, [str(db.db_path), "report"], catch_exceptions=False)
 
     assert result.exit_code == 0, no_alert_result.output + "\n" + result.output
+
+
+def test_report_with_new_epoch_doesnt_alert(runner, db):
+    api.push(db, "errors", value=10, absolute_max=0)
+    api.push(db, "errors", value=20, relative_max=0, epoch=1)
+
+    result = runner.invoke(cli, [str(db.db_path), "report"], catch_exceptions=False)
+
+    assert result.exit_code == 0, result.output + "\n" + result.output
 
 
 # prune
