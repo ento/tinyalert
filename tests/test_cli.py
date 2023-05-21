@@ -79,7 +79,7 @@ def test_push(runner, temp_dir):
         ],
         catch_exceptions=False,
     )
-    assert result.exit_code == 0, result
+    assert result.exit_code == 0, result.stdout + "\n" + result.stderr
 
     recents = read_recents(runner, "db.sqlite")
     assert recents[0]["metric_name"] == "errors"
@@ -307,7 +307,7 @@ def test_report_with_previous_no_alert_skips_previous_value(runner, db):
 
     result = runner.invoke(cli, [str(db.db_path), "report"], catch_exceptions=False)
 
-    assert result.exit_code == 0, no_alert_result.output + "\n" + result.output
+    assert result.exit_code == 0, result.output + "\n" + result.output
 
 
 def test_report_with_new_epoch_doesnt_alert(runner, db):
