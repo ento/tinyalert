@@ -141,18 +141,18 @@ class DiffReporter:
         if not report_data.violates_limits:
             return
         latest_lines = (
-            report_data.latest_diffable_content.splitlines(keepends=True)
+            report_data.latest_diffable_content.splitlines(keepends=False)
             if report_data.latest_diffable_content is not None
             else []
         )
         previous_lines = (
-            report_data.previous_diffable_content.splitlines(keepends=True)
+            report_data.previous_diffable_content.splitlines(keepends=False)
             if report_data.previous_diffable_content is not None
             else []
         )
-        diff = difflib.unified_diff(previous_lines, latest_lines, "previous", "latest")
+        diff = difflib.unified_diff(previous_lines, latest_lines, "previous", "latest", lineterm="")
         self.diffs.append(
-            MetricDiff(metric_name=report_data.metric_name, diff="".join(diff))
+            MetricDiff(metric_name=report_data.metric_name, diff="\n".join(diff))
         )
 
     def get_value(self) -> str:

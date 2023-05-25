@@ -8,7 +8,8 @@
   --- previous
   +++ latest
   @@ -1 +1 @@
-  -bbb+aaa
+  -bbb
+  +aaa
   ```
   
   </details>
