@@ -150,7 +150,9 @@ class DiffReporter:
             if report_data.previous_diffable_content is not None
             else []
         )
-        diff = difflib.unified_diff(previous_lines, latest_lines, "previous", "latest", lineterm="")
+        diff = difflib.unified_diff(
+            previous_lines, latest_lines, "previous", "latest", lineterm=""
+        )
         self.diffs.append(
             MetricDiff(metric_name=report_data.metric_name, diff="\n".join(diff))
         )
