@@ -255,12 +255,24 @@ def test_recent_works(runner, db):
 # report
 
 
+def test_report_returns_ok_when_empty_db(runner, db):
+    json_result = runner.invoke(
+        cli, [str(db.db_path), "report", "--format", "json"], catch_exceptions=False
+    )
+    assert json_result.exit_code == 0, json_result
+    report = json.loads(json_result.stdout)
+    assert report["table"]
+    assert not report["list"]
+    assert not report["diff"]
+    assert report["status"] == "ok"
+
+
 def test_report_exits_with_error_when_latest_value_violates_threshold(runner, db):
     api.push(db, "errors", value=10, absolute_max=0, diffable_content="foo")
 
     result = runner.invoke(cli, [str(db.db_path), "report"], catch_exceptions=False)
 
-    assert result.exit_code == 1, result
+    assert result.exit_code == 1, result.stdout + "\n" + result.stderr
 
     json_result = runner.invoke(
         cli, [str(db.db_path), "report", "--format", "json"], catch_exceptions=False
@@ -271,21 +283,21 @@ def test_report_exits_with_error_when_latest_value_violates_threshold(runner, db
     assert report["table"]
     assert report["list"]
     assert report["diff"]
-    assert report["alert"]
+    assert report["status"] == "alarm"
 
 
-def test_report_doesnt_alert_when_no_alert(runner, db):
+def test_report_doesnt_alert_when_muted(runner, db):
     api.push(db, "errors", value=10, absolute_max=0)
 
     result = runner.invoke(
-        cli, [str(db.db_path), "report", "--no-alert"], catch_exceptions=False
+        cli, [str(db.db_path), "report", "--mute"], catch_exceptions=False
     )
 
     assert result.exit_code == 0, result.output
 
     json_result = runner.invoke(
         cli,
-        [str(db.db_path), "report", "--no-alert", "--format", "json"],
+        [str(db.db_path), "report", "--mute", "--format", "json"],
         catch_exceptions=False,
     )
 
@@ -294,13 +306,13 @@ def test_report_doesnt_alert_when_no_alert(runner, db):
     assert report["table"]
     assert report["list"]
     assert report["diff"] == ""
-    assert not report["alert"]
+    assert report["status"] == "alarm_muted"
 
 
 def test_report_with_previous_no_alert_skips_previous_value(runner, db):
     api.push(db, "errors", value=10, absolute_max=0)
     no_alert_result = runner.invoke(
-        cli, [str(db.db_path), "report", "--no-alert"], catch_exceptions=False
+        cli, [str(db.db_path), "report", "--mute"], catch_exceptions=False
     )
     assert no_alert_result.exit_code == 0, no_alert_result.output
     api.push(db, "errors", value=20, relative_max=0)

@@ -158,12 +158,12 @@ def recent(ctx, output_format):
 @cli.command()
 @click.option("--format", "output_format", default=None)
 @click.option(
-    "--alert/--no-alert",
-    default=True,
-    help="If disabled, don't exit with an error. Mark latest data points as skipped if they violate a threshold.",
+    "--mute/--no-mute",
+    default=False,
+    help="If muted, don't exit with an error. Marks latest data points as skipped if they violate a threshold.",
 )
 @click.pass_context
-def report(ctx, output_format, alert):
+def report(ctx, output_format, mute):
     reports = []
     list_reporter = ListReporter()
     table_reporter = TableReporter()
@@ -172,7 +172,7 @@ def report(ctx, output_format, alert):
 
     for metric_name in ctx.obj.iter_metric_names():
         report_data = api.gather_report_data(ctx.obj, metric_name)
-        if not alert and report_data.violates_limits:
+        if mute and report_data.violates_limits:
             api.skip_latest(ctx.obj, metric_name)
         reports.append(report_data)
         table_reporter.add(report_data)
@@ -180,15 +180,20 @@ def report(ctx, output_format, alert):
         diff_reporter.add(report_data)
         status_reporter.add(report_data)
 
-    should_alert = not status_reporter.get_value() and alert
+    has_violation = not status_reporter.get_value()
 
     if output_format == "json":
+        status = "ok"
+        if has_violation and mute:
+            status = "alarm_muted"
+        if has_violation and not mute:
+            status = "alarm"
         output = {
             "reports": [report.model_dump(mode="json") for report in reports],
             "table": table_reporter.get_value(),
             "list": list_reporter.get_value(),
             "diff": diff_reporter.get_value(),
-            "alert": should_alert,
+            "status": status,
         }
         print(json.dumps(output, indent=2))
     else:
@@ -198,7 +203,7 @@ def report(ctx, output_format, alert):
         print("")
         print(diff_reporter.get_value())
 
-    if should_alert:
+    if has_violation and not mute:
         ctx.exit(1)
 
 
