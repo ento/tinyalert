@@ -3,7 +3,7 @@ import enum
 from functools import cached_property
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, field_validator, root_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class Point(BaseModel):
@@ -38,7 +38,7 @@ class MeasureType(BaseModel):
     source_type: SourceType
     eval_type: EvalType
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def parse_string_format(cls, v):
         attrs = v
         if isinstance(v, str):
