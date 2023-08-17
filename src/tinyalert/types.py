@@ -19,6 +19,7 @@ class Point(BaseModel):
     url: Optional[str]
     skipped: bool = False
     epoch: int = 0
+    generation: int = 0
 
     model_config = dict(from_attributes=True)
 

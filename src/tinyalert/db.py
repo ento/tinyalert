@@ -31,6 +31,7 @@ class Point(Base):
     diffable_content: Mapped[Optional[str]] = mapped_column(TEXT)
     url: Mapped[Optional[str]] = mapped_column()
     epoch: Mapped[int] = mapped_column(server_default="0")
+    generation: Mapped[int] = mapped_column(server_default="0")
 
 
 class DB:
@@ -55,6 +56,7 @@ class DB:
                     url=point.url,
                     skipped=point.skipped,
                     epoch=point.epoch,
+                    generation=point.generation,
                 )
             )
             session.commit()
