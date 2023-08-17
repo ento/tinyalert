@@ -31,6 +31,7 @@ def cli(ctx, db_path):
 )
 @click.option("--url", default=None, help="URL")
 @click.option("--epoch", type=int, default=0, help="Epoch number")
+@click.option("-n", "--generation", type=int, default=0, help="Generation number")
 @click.pass_context
 def push(
     ctx,
@@ -44,6 +45,7 @@ def push(
     diffable,
     url,
     epoch,
+    generation,
 ):
     if value is None:
         value = float(sys.stdin.read().strip())
@@ -64,6 +66,7 @@ def push(
         diffable_content=diffable,
         url=url,
         epoch=epoch,
+        generation=generation,
     )
 
 
@@ -87,12 +90,14 @@ def split_values(ctx, param, value):
     callback=split_values,
     help="Comma-separated names of metrics to measure",
 )
+@click.option("-n", "--generation", type=int, default=0, help="Generation number")
 @click.option("--url", default=None, help="URL")
 @click.pass_context
 def measure(
     ctx: click.Context,
     config_path: Path,
     metrics: Optional[List[str]],
+    generation: int,
     url: Optional[str],
 ):
     raw = tomli.loads(Path(config_path).read_text())
@@ -129,6 +134,7 @@ def measure(
             diffable_content=diffable_content,
             url=url,
             epoch=metric.epoch,
+            generation=generation,
         )
 
 

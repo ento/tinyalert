@@ -20,6 +20,7 @@ def push(
     diffable_content: Optional[str] = None,
     url: Optional[str] = None,
     epoch: int = 0,
+    generation: int = 0,
 ) -> Point:
     p = Point(
         metric_name=metric_name,
@@ -33,6 +34,7 @@ def push(
         diffable_content=diffable_content,
         url=url,
         epoch=epoch,
+        generation=generation,
     )
     return db.add(p)
 

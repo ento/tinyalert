@@ -17,6 +17,7 @@ def test_push_with_all_fields(db):
         diffable_content="diff",
         url="test",
         epoch=1,
+        generation=100,
     )
     assert p.metric_value == 1
     assert p.absolute_max == 2
@@ -27,6 +28,7 @@ def test_push_with_all_fields(db):
     assert p.diffable_content == "diff"
     assert p.url == "test"
     assert p.epoch == 1
+    assert p.generation == 100
 
 
 @pytest.mark.parametrize(

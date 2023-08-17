@@ -76,6 +76,8 @@ def test_push(runner, temp_dir):
             "url",
             "--epoch",
             "1",
+            "--generation",
+            "100",
         ],
         catch_exceptions=False,
     )
@@ -92,6 +94,7 @@ def test_push(runner, temp_dir):
     assert recents[0]["diffable_content"] == "diffable"
     assert recents[0]["url"] == "url"
     assert recents[0]["epoch"] == 1
+    assert recents[0]["generation"] == 100
 
 
 # measure
@@ -128,6 +131,8 @@ def test_measure(runner, temp_dir, write_config, metrics_to_measure, expected):
             "measure",
             "--metrics",
             metrics_to_measure,
+            "-n",
+            "100",
             "--config",
             config_path,
         ],
@@ -141,6 +146,7 @@ def test_measure(runner, temp_dir, write_config, metrics_to_measure, expected):
     for p in recents:
         assert p["metric_value"] == expected[p["metric_name"]]
         assert p["epoch"] == expected_epochs[p["metric_name"]]
+        assert p["generation"] == 100
 
 
 @pytest.mark.parametrize(
