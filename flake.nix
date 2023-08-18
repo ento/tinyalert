@@ -2,47 +2,43 @@
 # and enable flakes: https://nixos.wiki/wiki/Flakes#Enable_flakes
 # Then install direnv: https://direnv.net/
 {
-  outputs = { self, nixpkgs, flake-utils }:
+  inputs.poetry2nix = {
+    url = "github:nix-community/poetry2nix";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  outputs = { self, nixpkgs, flake-utils, poetry2nix }:
     flake-utils.lib.eachDefaultSystem
       (system: let
-        pkgs = import nixpkgs {
-          inherit system;
-        };
-        defaultPython = pkgs.python38;
-        buildInputs = [
+        inherit (poetry2nix.legacyPackages.${system}) mkPoetryApplication overrides;
+        pkgs = nixpkgs.legacyPackages.${system};
+        defaultPython = pkgs.python310;
+        packages = [
           pkgs.act
           pkgs.nodejs
           pkgs.poetry
           pkgs.sqlite
           defaultPython
         ];
-        app = pkgs.poetry2nix.mkPoetryApplication {
+        app = mkPoetryApplication {
           projectDir = ./.;
-          overrides = pkgs.poetry2nix.overrides.withDefaults (self: super: {
-            annotated-types = super.annotated-types.overridePythonAttrs (old: {
+          overrides = overrides.withDefaults (self: super: {
+            pytest-freezer = super.pytest-freezer.overridePythonAttrs (old: {
               buildInputs = (old.nativeBuildInputs or [ ]) ++ [ self.hatchling ];
             });
-            pydantic = super.pydantic.overridePythonAttrs (old: {
-              buildInputs = (old.nativeBuildInputs or [ ]) ++ [ self.hatchling self.hatch-fancy-pypi-readme ];
-            });
-            pydantic-core = super.pydantic-core.overridePythonAttrs (old: {
-              cargoDeps = pkgs.rustPlatform.fetchCargoTarball {
-                inherit (old) src;
-                name = "${old.pname}-${old.version}";
-                hash = "sha256-QIEdSTCkb94PrJ6UIHYp19knCPAW3iHBQmI1An7FzlA=";
-              };
-              nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.rustPlatform.cargoSetupHook pkgs.rustPlatform.maturinBuildHook ];
+            syrupy = super.syrupy.overridePythonAttrs (old: {
+              buildInputs = (old.nativeBuildInputs or [ ]) ++ [ self.poetry ];
             });
           });
         };
       in {
         devShells.default = pkgs.mkShell {
-          inherit buildInputs;
+          inherit packages;
           shellHook = ''
             export PYTHON_SEARCH_PATH=${defaultPython}/bin
           '';
         };
         packages.tinyalert = app;
-        defaultPackage = app;
+        packages.default = self.packages.${system}.tinyalert;
       });
 }
