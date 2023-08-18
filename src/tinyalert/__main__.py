@@ -1,3 +1,3 @@
 from .cli import cli
 
-cli()
+cli(auto_envvar_prefix="TINYALERT")
