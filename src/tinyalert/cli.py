@@ -12,7 +12,7 @@ from .types import Config
 
 
 @click.group()
-@click.argument("db_path", type=click.Path(exists=False), envvar="TINYALERT_DB")
+@click.option("--db", "db_path", required=True, default="tinyalert.sqlite", type=click.Path(exists=False))
 @click.pass_context
 def cli(ctx, db_path):
     ctx.obj = db.DB(db_path)
