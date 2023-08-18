@@ -24,7 +24,8 @@ def test_table_reporter_outputs(snapshot):
             absolute_min=3,
             relative_max=0,
             relative_min=2,
-            latest_url="http://example.com/",
+            latest_url="http://example.com/latest",
+            previous_url="http://example.com/prev",
         )
     )
 
@@ -51,7 +52,8 @@ def test_list_reporter_outputs(snapshot):
             absolute_min=3,
             relative_max=0,
             relative_min=2,
-            latest_url="http://example.com/",
+            latest_url="http://example.com/latest",
+            previous_url="http://example.com/prev",
         )
     )
 

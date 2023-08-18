@@ -36,9 +36,9 @@
 # ---
 # name: test_table_reporter_outputs
   '''
-  | Name         | Value   | Thresholds     | Change   | Thresholds     | Trend   | Details                        |
-  |--------------|---------|----------------|----------|----------------|---------|--------------------------------|
-  | null         | -       | -              | -        | -              |         |                                |
-  | kitchen-sink | 2 [!]   | 3.0<=v, v<=0.0 | +1 [!]   | 2.0<=Δ, Δ<=0.0 | ▁▄█     | [Details](http://example.com/) |
+  | Name         | Value   | Thresholds     | Change   | Thresholds     | Trend   | Details                                                             |
+  |--------------|---------|----------------|----------|----------------|---------|---------------------------------------------------------------------|
+  | null         | -       | -              | -        | -              |         |                                                                     |
+  | kitchen-sink | 2 [!]   | 3.0<=v, v<=0.0 | +1 [!]   | 2.0<=Δ, Δ<=0.0 | ▁▄█     | [prev](http://example.com/prev) [latest](http://example.com/latest) |
   '''
 # ---
