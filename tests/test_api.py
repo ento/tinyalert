@@ -236,6 +236,35 @@ def test_gather_report_data_when_two_points(db):
     assert data.url == "current_url"
 
 
+def test_gather_report_data_when_two_points_from_older_generation(db):
+    api.push(
+        db,
+        "errors",
+        value=1,
+        absolute_max=10,
+        absolute_min=0,
+        relative_max=2,
+        relative_min=3,
+        diffable_content="previous",
+        url="prev_url",
+    )
+    api.push(db, "errors", value=2, diffable_content="latest", url="current_url")
+
+    data = api.gather_report_data(db, "errors", head_generation=1)
+
+    assert data.metric_name == "errors"
+    assert data.latest_values == [1.0, 2.0]
+    assert data.latest_value is None
+    assert data.previous_value is None
+    assert data.absolute_max is None
+    assert data.absolute_min is None
+    assert data.relative_max is None
+    assert data.relative_min is None
+    assert data.latest_diffable_content is None
+    assert data.previous_diffable_content is None
+    assert data.latest_url is None
+
+
 def test_gather_report_data_dont_alert_on_skipped_data(db):
     api.push(db, "errors", value=1)
     api.skip_latest(db, "errors")

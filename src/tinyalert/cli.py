@@ -162,6 +162,7 @@ def recent(ctx, output_format):
 
 
 @cli.command()
+@click.option("-n", "--generation", type=int, default=None, help="Only report on metrics with latest point that matches this generation")
 @click.option("--format", "output_format", default=None)
 @click.option(
     "--mute/--no-mute",
@@ -169,7 +170,7 @@ def recent(ctx, output_format):
     help="If muted, don't exit with an error. Marks latest data points as skipped if they violate a threshold.",
 )
 @click.pass_context
-def report(ctx, output_format, mute):
+def report(ctx, generation, output_format, mute):
     reports = []
     list_reporter = ListReporter()
     table_reporter = TableReporter()
@@ -177,7 +178,7 @@ def report(ctx, output_format, mute):
     status_reporter = StatusReporter()
 
     for metric_name in ctx.obj.iter_metric_names():
-        report_data = api.gather_report_data(ctx.obj, metric_name)
+        report_data = api.gather_report_data(ctx.obj, metric_name, generation)
         if mute and report_data.violates_limits:
             api.skip_latest(ctx.obj, metric_name)
         reports.append(report_data)

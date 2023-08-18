@@ -81,7 +81,7 @@ def recent(db: DB, count: int = 10) -> Iterator[Point]:
         yield p
 
 
-def gather_report_data(db: DB, metric_name: str) -> ReportData:
+def gather_report_data(db: DB, metric_name: str, head_generation: Optional[int] = None) -> ReportData:
     data = ReportData(metric_name=metric_name)
     points = list(db.recent(metric_name, count=None))
 
@@ -90,7 +90,7 @@ def gather_report_data(db: DB, metric_name: str) -> ReportData:
 
     data.latest_values = [p.metric_value for p in reversed(points[:10])]
 
-    eligible_points = _iter_alert_eligible_points(points)
+    eligible_points = _iter_alert_eligible_points(points, head_generation)
     latest = next(eligible_points, None)
     if latest:
         data.latest_value = latest.metric_value
@@ -109,10 +109,12 @@ def gather_report_data(db: DB, metric_name: str) -> ReportData:
     return data
 
 
-def _iter_alert_eligible_points(all_points: Sequence[Point]) -> Iterator[Point]:
+def _iter_alert_eligible_points(all_points: Sequence[Point], head_generation: Optional[int] = None) -> Iterator[Point]:
     active_epoch = None
     for i, p in enumerate(all_points):
         if i == 0:
+            if head_generation is not None and p.generation != head_generation:
+                break
             active_epoch = p.epoch
             yield p
             continue

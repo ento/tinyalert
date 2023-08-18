@@ -292,6 +292,25 @@ def test_report_exits_with_error_when_latest_value_violates_threshold(runner, db
     assert report["status"] == "alarm"
 
 
+def test_report_returns_ok_when_non_current_generation_violates_threshold(runner, db):
+    api.push(db, "errors", value=10, absolute_max=0, diffable_content="foo", generation=1)
+
+    result = runner.invoke(cli, [str(db.db_path), "report"], catch_exceptions=False)
+
+    assert result.exit_code == 1, result.stdout + "\n" + result.stderr
+
+    json_result = runner.invoke(
+        cli, [str(db.db_path), "report", "--generation", "2", "--format", "json"], catch_exceptions=False
+    )
+
+    assert json_result.exit_code == 0, json_result
+    report = json.loads(json_result.stdout)
+    assert report["table"]
+    assert not report["list"]
+    assert not report["diff"]
+    assert report["status"] == "ok"
+
+
 def test_report_doesnt_alert_when_muted(runner, db):
     api.push(db, "errors", value=10, absolute_max=0)
 
