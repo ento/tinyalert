@@ -105,6 +105,7 @@ def gather_report_data(db: DB, metric_name: str, head_generation: Optional[int] 
     if previous:
         data.previous_value = previous.metric_value
         data.previous_diffable_content = previous.diffable_content
+        data.previous_url = previous.url
 
     return data
 

@@ -176,6 +176,7 @@ def test_gather_report_data_when_no_data(db):
     assert data.latest_diffable_content is None
     assert data.previous_diffable_content is None
     assert data.latest_url is None
+    assert data.previous_url is None
 
 
 def test_gather_report_data_when_single_point(db):
@@ -205,6 +206,7 @@ def test_gather_report_data_when_single_point(db):
     assert data.latest_diffable_content == "content"
     assert data.previous_diffable_content is None
     assert data.latest_url == "url"
+    assert data.previous_url is None
 
 
 def test_gather_report_data_when_two_points(db):
@@ -234,6 +236,7 @@ def test_gather_report_data_when_two_points(db):
     assert data.latest_diffable_content == "latest"
     assert data.previous_diffable_content == "previous"
     assert data.latest_url == "current_url"
+    assert data.previous_url == "prev_url"
 
 
 def test_gather_report_data_when_two_points_from_older_generation(db):
@@ -263,6 +266,7 @@ def test_gather_report_data_when_two_points_from_older_generation(db):
     assert data.latest_diffable_content is None
     assert data.previous_diffable_content is None
     assert data.latest_url is None
+    assert data.previous_url is None
 
 
 def test_gather_report_data_dont_alert_on_skipped_data(db):

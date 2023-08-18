@@ -100,6 +100,7 @@ class ReportData(BaseModel):
     latest_diffable_content: Optional[str] = None
     previous_diffable_content: Optional[str] = None
     latest_url: Optional[str] = None
+    previous_url: Optional[str] = None
 
     @cached_property
     def violates_absolute_max(self) -> bool:
