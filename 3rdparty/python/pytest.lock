@@ -596,13 +596,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "af00532db06664087671c3a1043fef5f41b23e7a1f6a7a8966da771ed1eade74",
-              "url": "https://files.pythonhosted.org/packages/cf/fc/d1310d7ff29b71ef4a729c7b5ca3d5860563e9d57aa5e2a2a3341c39f06b/syrupy-4.0.8-py3-none-any.whl"
+              "hash": "7d54e391f3d21eccb3b35f5532fdaa05255ec2a28f55b1f01e7662743e7a1ef7",
+              "url": "https://files.pythonhosted.org/packages/aa/28/833dc51c5c48bb5c808e44a61f049b31f4ceedb1310cacf3e7471060b2ed/syrupy-4.1.1-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "b884730ff6976d6892fedb2a69d0a545c0f63890802e66ede45befc9b2e18873",
-              "url": "https://files.pythonhosted.org/packages/b0/3f/f4dde578e253db74c9f21cb4d2c2e47fe9e6d2a9c2fb5d024f925b7754d8/syrupy-4.0.8.tar.gz"
+              "hash": "e399c9e550b94d4d4f554331c7a98aa6a7877b73f1e463ef6758e99963e7efc5",
+              "url": "https://files.pythonhosted.org/packages/8d/ce/0c37a9f38ec4d12d6a50081d9158b899c765bbcb79ebf59e93215ebe26c8/syrupy-4.1.1.tar.gz"
             }
           ],
           "project_name": "syrupy",
@@ -611,7 +611,7 @@
             "pytest<8.0.0,>=7.0.0"
           ],
           "requires_python": "<4,>=3.8.1",
-          "version": "4.0.8"
+          "version": "4.1.1"
         },
         {
           "artifacts": [
