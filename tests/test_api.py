@@ -175,7 +175,7 @@ def test_gather_report_data_when_no_data(db):
     assert data.relative_min is None
     assert data.latest_diffable_content is None
     assert data.previous_diffable_content is None
-    assert data.url is None
+    assert data.latest_url is None
 
 
 def test_gather_report_data_when_single_point(db):
@@ -204,7 +204,7 @@ def test_gather_report_data_when_single_point(db):
     assert data.relative_min == 3
     assert data.latest_diffable_content == "content"
     assert data.previous_diffable_content is None
-    assert data.url == "url"
+    assert data.latest_url == "url"
 
 
 def test_gather_report_data_when_two_points(db):
@@ -233,7 +233,7 @@ def test_gather_report_data_when_two_points(db):
     assert data.relative_min is None
     assert data.latest_diffable_content == "latest"
     assert data.previous_diffable_content == "previous"
-    assert data.url == "current_url"
+    assert data.latest_url == "current_url"
 
 
 def test_gather_report_data_when_two_points_from_older_generation(db):

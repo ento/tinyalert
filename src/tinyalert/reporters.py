@@ -77,8 +77,8 @@ class TableReporter:
         if report_data.latest_values:
             row["trend"] = sparklines(report_data.latest_values)[0]
 
-        if report_data.url:
-            row["details"] = f"[Details]({report_data.url})"
+        if report_data.latest_url:
+            row["details"] = f"[Details]({report_data.latest_url})"
 
         return row
 

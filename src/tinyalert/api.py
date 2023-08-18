@@ -99,7 +99,7 @@ def gather_report_data(db: DB, metric_name: str, head_generation: Optional[int] 
         data.relative_max = latest.relative_max
         data.relative_min = latest.relative_min
         data.latest_diffable_content = latest.diffable_content
-        data.url = latest.url
+        data.latest_url = latest.url
 
     previous = next(eligible_points, None)
     if previous:
