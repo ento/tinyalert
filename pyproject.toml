@@ -13,7 +13,7 @@ packages = [
 ]
 
 [tool.poetry.scripts]
-tinyalert = 'tinyalert.cli:cli'
+tinyalert = 'tinyalert:__main__'
 
 [tool.poetry.dependencies]
 python = ">=3.8.16, <3.12"
