@@ -35,6 +35,7 @@
         devShells.default = pkgs.mkShell {
           inherit packages;
           shellHook = ''
+            # Set env var used by pants.toml to look up python executable
             export PYTHON_SEARCH_PATH=${defaultPython}/bin
           '';
         };
