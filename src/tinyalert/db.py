@@ -7,7 +7,7 @@ from typing import Generator, Optional, Union
 import alembic.config
 from sqlalchemy import create_engine, delete, select, update
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
-from sqlalchemy.types import TEXT, String
+from sqlalchemy.types import JSON, TEXT, String
 
 from . import types
 
@@ -32,6 +32,7 @@ class Point(Base):
     url: Mapped[Optional[str]] = mapped_column()
     epoch: Mapped[int] = mapped_column(server_default="0")
     generation: Mapped[int] = mapped_column(server_default="0")
+    tags: Mapped[str] = mapped_column(JSON, server_default="{}")
 
 
 class DB:
@@ -42,25 +43,25 @@ class DB:
 
     def add(self, point: types.Point):
         with self.session() as session:
-            session.add(
-                Point(
-                    time=point.time,
-                    metric_name=point.metric_name,
-                    metric_value=point.metric_value,
-                    absolute_max=point.absolute_max,
-                    absolute_min=point.absolute_min,
-                    relative_max=point.relative_max,
-                    relative_min=point.relative_min,
-                    measure_source=point.measure_source,
-                    diffable_content=point.diffable_content,
-                    url=point.url,
-                    skipped=point.skipped,
-                    epoch=point.epoch,
-                    generation=point.generation,
-                )
+            db_point = Point(
+                time=point.time,
+                metric_name=point.metric_name,
+                metric_value=point.metric_value,
+                absolute_max=point.absolute_max,
+                absolute_min=point.absolute_min,
+                relative_max=point.relative_max,
+                relative_min=point.relative_min,
+                measure_source=point.measure_source,
+                diffable_content=point.diffable_content,
+                url=point.url,
+                skipped=point.skipped,
+                epoch=point.epoch,
+                generation=point.generation,
+                tags=point.tags,
             )
+            session.add(db_point)
             session.commit()
-        return point
+            return types.Point.model_validate(db_point)
 
     def skip_latest(self, metric_name: str):
         to_update = (

@@ -98,6 +98,39 @@ def test_push(runner, temp_dir):
     assert recents[0]["generation"] == 100
 
 
+def test_push_tags(runner, temp_dir):
+    result = runner.invoke(
+        cli,
+        [
+            "--db",
+            "db.sqlite",
+            "push",
+            "errors",
+            "--value",
+            1,
+            "--tag",
+            "foo",
+            "1",
+            "--tag",
+            "bar",
+            "a",
+            "--tagjson",
+            "baz",
+            '"qux"',
+            "--tagjson",
+            "xyz",
+            "2",
+        ],
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 0, result.stdout + "\n" + result.stderr
+
+    recents = read_recents(runner, "db.sqlite")
+    assert recents[0]["metric_name"] == "errors"
+    assert recents[0]["metric_value"] == 1
+    assert recents[0]["tags"] == {"foo": "1", "bar": "a", "baz": "qux", "xyz": 2}
+
+
 # measure
 
 
@@ -194,6 +227,52 @@ def test_measure_diffable_content(
     recents = read_recents(runner, "db.sqlite")
     assert len(recents) == 1
     assert recents[0]["diffable_content"] == expected_content
+
+
+def test_measure_tags(
+    runner, temp_dir, write_config
+):
+    config_path = write_config(
+        [
+            MetricConfig(
+                name="foo",
+                measure_source="foo.txt",
+                measure_type="file-lines",
+            ),
+        ]
+    )
+    temp_dir.joinpath("foo.txt").write_text("foo")
+
+    result = runner.invoke(
+        cli,
+        [
+            "--db",
+            "db.sqlite",
+            "measure",
+            "--metrics",
+            "foo",
+            "--config",
+            config_path,
+            "--tag",
+            "foo",
+            "1",
+            "--tag",
+            "bar",
+            "a",
+            "--tagjson",
+            "baz",
+            '"qux"',
+            "--tagjson",
+            "xyz",
+            "2",
+        ],
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 0, result
+
+    recents = read_recents(runner, "db.sqlite")
+    assert len(recents) == 1
+    assert recents[0]["tags"] == {"foo": "1", "bar": "a", "baz": "qux", "xyz": 2}
 
 
 def test_measure_non_existent_metric(runner, temp_dir, write_config):

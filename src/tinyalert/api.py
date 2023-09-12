@@ -2,7 +2,7 @@ import datetime
 import shlex
 import subprocess
 from pathlib import Path
-from typing import Iterator, List, Optional, Sequence
+from typing import Any, Dict, Iterator, List, Optional, Sequence
 
 from .db import DB
 from .types import EvalType, MeasureResult, MeasureType, Point, ReportData, SourceType
@@ -21,6 +21,7 @@ def push(
     url: Optional[str] = None,
     epoch: int = 0,
     generation: int = 0,
+    tags: Dict[str, Any] = {},
 ) -> Point:
     p = Point(
         metric_name=metric_name,
@@ -35,6 +36,7 @@ def push(
         url=url,
         epoch=epoch,
         generation=generation,
+        tags=tags,
     )
     return db.add(p)
 
@@ -100,12 +102,14 @@ def gather_report_data(db: DB, metric_name: str, head_generation: Optional[int] 
         data.relative_min = latest.relative_min
         data.latest_diffable_content = latest.diffable_content
         data.latest_url = latest.url
+        data.latest_tags = latest.tags
 
     previous = next(eligible_points, None)
     if previous:
         data.previous_value = previous.metric_value
         data.previous_diffable_content = previous.diffable_content
         data.previous_url = previous.url
+        data.previous_tags = previous.tags
 
     return data
 

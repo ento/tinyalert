@@ -18,6 +18,7 @@ def test_push_with_all_fields(db):
         url="test",
         epoch=1,
         generation=100,
+        tags={"foo": 1}
     )
     assert p.metric_value == 1
     assert p.absolute_max == 2
@@ -29,6 +30,7 @@ def test_push_with_all_fields(db):
     assert p.url == "test"
     assert p.epoch == 1
     assert p.generation == 100
+    assert p.tags == {"foo": 1}
 
 
 @pytest.mark.parametrize(
@@ -120,6 +122,7 @@ def test_recent(db):
         measure_source="content",
         diffable_content="diff",
         url="url",
+        tags={"foo": "bar"},
     )
     api.push(db, "warnings", value=10, epoch=1)
 
@@ -136,6 +139,7 @@ def test_recent(db):
     assert points[0].diffable_content is None
     assert points[0].url is None
     assert points[0].epoch == 1
+    assert points[0].tags == {}
 
     points = list(db.recent(count=3))
 
@@ -150,6 +154,7 @@ def test_recent(db):
     assert points[0].diffable_content is None
     assert points[0].url is None
     assert points[0].epoch == 1
+    assert points[0].tags == {}
     assert points[1].metric_name == "errors"
     assert points[1].metric_value == 1
     assert points[1].absolute_max == 10
@@ -160,6 +165,7 @@ def test_recent(db):
     assert points[1].diffable_content == "diff"
     assert points[1].url == "url"
     assert points[1].epoch == 0
+    assert points[1].tags == {"foo": "bar"}
 
 
 def test_gather_report_data_when_no_data(db):
@@ -177,6 +183,8 @@ def test_gather_report_data_when_no_data(db):
     assert data.previous_diffable_content is None
     assert data.latest_url is None
     assert data.previous_url is None
+    assert data.latest_tags is None
+    assert data.previous_tags is None
 
 
 def test_gather_report_data_when_single_point(db):
@@ -190,6 +198,7 @@ def test_gather_report_data_when_single_point(db):
         relative_min=3,
         diffable_content="content",
         url="url",
+        tags={"foo": "bar"},
     )
     api.push(db, "warnings", value=10)
 
@@ -207,6 +216,8 @@ def test_gather_report_data_when_single_point(db):
     assert data.previous_diffable_content is None
     assert data.latest_url == "url"
     assert data.previous_url is None
+    assert data.latest_tags == {"foo": "bar"}
+    assert data.previous_tags is None
 
 
 def test_gather_report_data_when_two_points(db):
@@ -220,8 +231,9 @@ def test_gather_report_data_when_two_points(db):
         relative_min=3,
         diffable_content="previous",
         url="prev_url",
+        tags={"foo": "bar"},
     )
-    api.push(db, "errors", value=2, diffable_content="latest", url="current_url")
+    api.push(db, "errors", value=2, diffable_content="latest", url="current_url", tags={"foo": "baz"})
 
     data = api.gather_report_data(db, "errors")
 
@@ -237,6 +249,8 @@ def test_gather_report_data_when_two_points(db):
     assert data.previous_diffable_content == "previous"
     assert data.latest_url == "current_url"
     assert data.previous_url == "prev_url"
+    assert data.latest_tags == {"foo": "baz"}
+    assert data.previous_tags == {"foo": "bar"}
 
 
 def test_gather_report_data_when_two_points_from_older_generation(db):
@@ -250,8 +264,9 @@ def test_gather_report_data_when_two_points_from_older_generation(db):
         relative_min=3,
         diffable_content="previous",
         url="prev_url",
+        tags={"foo": "bar"},
     )
-    api.push(db, "errors", value=2, diffable_content="latest", url="current_url")
+    api.push(db, "errors", value=2, diffable_content="latest", url="current_url", tags={"foo": "baz"})
 
     data = api.gather_report_data(db, "errors", head_generation=1)
 
@@ -267,6 +282,8 @@ def test_gather_report_data_when_two_points_from_older_generation(db):
     assert data.previous_diffable_content is None
     assert data.latest_url is None
     assert data.previous_url is None
+    assert data.latest_tags is None
+    assert data.previous_tags is None
 
 
 def test_gather_report_data_dont_alert_on_skipped_data(db):

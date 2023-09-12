@@ -1,7 +1,7 @@
 import json
 import sys
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import click
 import tomli
@@ -9,6 +9,13 @@ import tomli
 from . import api, db
 from .reporters import DiffReporter, ListReporter, StatusReporter, TableReporter
 from .types import Config
+
+
+class JSONType(click.ParamType):
+    name = "json"
+
+    def convert(self, value, param, ctx):
+        return json.loads(value)
 
 
 @click.group()
@@ -32,6 +39,8 @@ def cli(ctx, db_path):
 @click.option("--url", default=None, help="URL")
 @click.option("--epoch", type=int, default=0, help="Epoch number")
 @click.option("-n", "--generation", type=int, default=0, help="Generation number")
+@click.option("--tag", "tags", type=(str, str), multiple=True, help="Key-value pair to store as a tag. Value is stored as a string")
+@click.option("--tagjson", "json_tags", type=(str, JSONType()), multiple=True, help="Key-value pair to store as a tag. Value is evaluated as JSON")
 @click.pass_context
 def push(
     ctx,
@@ -46,13 +55,11 @@ def push(
     url,
     epoch,
     generation,
+    tags,
+    json_tags,
 ):
     if value is None:
         value = float(sys.stdin.read().strip())
-
-    if not value:
-        click.echo("No value provided")
-        ctx.exit(1)
 
     api.push(
         db=ctx.obj,
@@ -67,6 +74,7 @@ def push(
         url=url,
         epoch=epoch,
         generation=generation,
+        tags=dict(tags + json_tags),
     )
 
 
@@ -92,6 +100,8 @@ def split_values(ctx, param, value):
 )
 @click.option("-n", "--generation", type=int, default=0, help="Generation number")
 @click.option("--url", default=None, help="URL")
+@click.option("--tag", "tags", type=(str, str), multiple=True, help="Key-value pair to store as a tag. Value is stored as a string")
+@click.option("--tagjson", "json_tags", type=(str, JSONType()), multiple=True, help="Key-value pair to store as a tag. Value is evaluated as JSON")
 @click.pass_context
 def measure(
     ctx: click.Context,
@@ -99,6 +109,8 @@ def measure(
     metrics: Optional[List[str]],
     generation: int,
     url: Optional[str],
+    tags: list[tuple[str, str]],
+    json_tags: list[tuple[str, Any]],
 ):
     raw = tomli.loads(Path(config_path).read_text())
     config = Config.model_validate(raw)
@@ -135,6 +147,7 @@ def measure(
             url=url,
             epoch=metric.epoch,
             generation=generation,
+            tags=dict(tags + json_tags),
         )
 
 
@@ -171,7 +184,7 @@ def recent(ctx, output_format):
 )
 @click.pass_context
 def report(ctx, generation, output_format, mute):
-    reports = []
+    reports = {}
     list_reporter = ListReporter()
     table_reporter = TableReporter()
     diff_reporter = DiffReporter()
@@ -181,7 +194,7 @@ def report(ctx, generation, output_format, mute):
         report_data = api.gather_report_data(ctx.obj, metric_name, generation)
         if mute and report_data.violates_limits:
             api.skip_latest(ctx.obj, metric_name)
-        reports.append(report_data)
+        reports[metric_name] = report_data
         table_reporter.add(report_data)
         list_reporter.add(report_data)
         diff_reporter.add(report_data)
@@ -196,7 +209,7 @@ def report(ctx, generation, output_format, mute):
         if has_violation and not mute:
             status = "alarm"
         output = {
-            "reports": [report.model_dump(mode="json") for report in reports],
+            "reports": {metric_name: report.model_dump(mode="json") for metric_name, report in reports.items()},
             "table": table_reporter.get_value(),
             "list": list_reporter.get_value(),
             "diff": diff_reporter.get_value(),

@@ -1,7 +1,7 @@
 import datetime
 import enum
 from functools import cached_property
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -20,6 +20,7 @@ class Point(BaseModel):
     skipped: bool = False
     epoch: int = 0
     generation: int = 0
+    tags: Dict[str, Any] = {}
 
     model_config = dict(from_attributes=True)
 
@@ -101,6 +102,8 @@ class ReportData(BaseModel):
     previous_diffable_content: Optional[str] = None
     latest_url: Optional[str] = None
     previous_url: Optional[str] = None
+    latest_tags: Optional[Dict[str, Any]] = None
+    previous_tags: Optional[Dict[str, Any]] = None
 
     @cached_property
     def violates_absolute_max(self) -> bool:
