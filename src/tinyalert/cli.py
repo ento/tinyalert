@@ -10,7 +10,6 @@ from . import api, db
 from .reporters import DiffReporter, ListReporter, StatusReporter, TableReporter
 from .types import Config
 
-
 ENVVAR_PREFIX = "TINYALERT_"
 
 
@@ -22,7 +21,14 @@ class JSONType(click.ParamType):
 
 
 @click.group()
-@click.option("--db", "db_path", required=True, default="tinyalert.sqlite", type=click.Path(exists=False), show_default=True)
+@click.option(
+    "--db",
+    "db_path",
+    required=True,
+    default="tinyalert.sqlite",
+    type=click.Path(exists=False),
+    show_default=True,
+)
 @click.pass_context
 def cli(ctx, db_path):
     ctx.obj = db.DB(db_path)
@@ -40,10 +46,39 @@ def cli(ctx, db_path):
     "--diffable", default=None, help="Text content suitable for showing diffs"
 )
 @click.option("--url", default=None, help="URL", envvar=ENVVAR_PREFIX + "URL")
-@click.option("--epoch", type=int, default=0, help="Epoch number", envvar=ENVVAR_PREFIX + "EPOCH", show_default=True)
-@click.option("-n", "--generation", type=int, default=0, help="Generation number", envvar=ENVVAR_PREFIX + "GENERATION", show_default=True)
-@click.option("--tag", "tags", type=(str, str), multiple=True, help="Key-value pair to store as a tag. Value is stored as a string", envvar=ENVVAR_PREFIX + "TAGS")
-@click.option("--tagjson", "json_tags", type=(str, JSONType()), multiple=True, help="Key-value pair to store as a tag. Value is evaluated as JSON", envvar=ENVVAR_PREFIX + "JSON_TAGS")
+@click.option(
+    "--epoch",
+    type=int,
+    default=0,
+    help="Epoch number",
+    envvar=ENVVAR_PREFIX + "EPOCH",
+    show_default=True,
+)
+@click.option(
+    "-n",
+    "--generation",
+    type=int,
+    default=0,
+    help="Generation number",
+    envvar=ENVVAR_PREFIX + "GENERATION",
+    show_default=True,
+)
+@click.option(
+    "--tag",
+    "tags",
+    type=(str, str),
+    multiple=True,
+    help="Key-value pair to store as a tag. Value is stored as a string",
+    envvar=ENVVAR_PREFIX + "TAGS",
+)
+@click.option(
+    "--tagjson",
+    "json_tags",
+    type=(str, JSONType()),
+    multiple=True,
+    help="Key-value pair to store as a tag. Value is evaluated as JSON",
+    envvar=ENVVAR_PREFIX + "JSON_TAGS",
+)
 @click.pass_context
 def push(
     ctx,
@@ -102,10 +137,32 @@ def split_values(ctx, param, value):
     callback=split_values,
     help="Comma-separated names of metrics to measure",
 )
-@click.option("-n", "--generation", type=int, default=0, help="Generation number", envvar=ENVVAR_PREFIX + "GENERATION", show_default=True)
+@click.option(
+    "-n",
+    "--generation",
+    type=int,
+    default=0,
+    help="Generation number",
+    envvar=ENVVAR_PREFIX + "GENERATION",
+    show_default=True,
+)
 @click.option("--url", default=None, help="URL", envvar=ENVVAR_PREFIX + "URL")
-@click.option("--tag", "tags", type=(str, str), multiple=True, help="Key-value pair to store as a tag. Value is stored as a string", envvar=ENVVAR_PREFIX + "TAGS")
-@click.option("--tagjson", "json_tags", type=(str, JSONType()), multiple=True, help="Key-value pair to store as a tag. Value is evaluated as JSON", envvar=ENVVAR_PREFIX + "JSON_TAGS")
+@click.option(
+    "--tag",
+    "tags",
+    type=(str, str),
+    multiple=True,
+    help="Key-value pair to store as a tag. Value is stored as a string",
+    envvar=ENVVAR_PREFIX + "TAGS",
+)
+@click.option(
+    "--tagjson",
+    "json_tags",
+    type=(str, JSONType()),
+    multiple=True,
+    help="Key-value pair to store as a tag. Value is evaluated as JSON",
+    envvar=ENVVAR_PREFIX + "JSON_TAGS",
+)
 @click.pass_context
 def measure(
     ctx: click.Context,
@@ -221,7 +278,10 @@ def report(ctx, generation, output_format, mute):
         if has_violation and not mute:
             status = "alarm"
         output = {
-            "reports": {metric_name: report.model_dump(mode="json") for metric_name, report in reports.items()},
+            "reports": {
+                metric_name: report.model_dump(mode="json")
+                for metric_name, report in reports.items()
+            },
             "table": table_reporter.get_value(),
             "list": list_reporter.get_value(),
             "diff": diff_reporter.get_value(),

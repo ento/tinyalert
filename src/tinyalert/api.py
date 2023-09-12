@@ -83,7 +83,9 @@ def recent(db: DB, count: int = 10) -> Iterator[Point]:
         yield p
 
 
-def gather_report_data(db: DB, metric_name: str, head_generation: Optional[int] = None) -> ReportData:
+def gather_report_data(
+    db: DB, metric_name: str, head_generation: Optional[int] = None
+) -> ReportData:
     data = ReportData(metric_name=metric_name)
     points = list(db.recent(metric_name, count=None))
 
@@ -114,7 +116,9 @@ def gather_report_data(db: DB, metric_name: str, head_generation: Optional[int] 
     return data
 
 
-def _iter_alert_eligible_points(all_points: Sequence[Point], head_generation: Optional[int] = None) -> Iterator[Point]:
+def _iter_alert_eligible_points(
+    all_points: Sequence[Point], head_generation: Optional[int] = None
+) -> Iterator[Point]:
     active_epoch = None
     for i, p in enumerate(all_points):
         if i == 0:

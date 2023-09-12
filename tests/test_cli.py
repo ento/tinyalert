@@ -229,9 +229,7 @@ def test_measure_diffable_content(
     assert recents[0]["diffable_content"] == expected_content
 
 
-def test_measure_tags(
-    runner, temp_dir, write_config
-):
+def test_measure_tags(runner, temp_dir, write_config):
     config_path = write_config(
         [
             MetricConfig(
@@ -284,7 +282,15 @@ def test_measure_non_existent_metric(runner, temp_dir, write_config):
 
     result = runner.invoke(
         cli,
-        ["--db", "db.sqlite", "measure", "--metrics", "foo,bar", "--config", config_path],
+        [
+            "--db",
+            "db.sqlite",
+            "measure",
+            "--metrics",
+            "foo,bar",
+            "--config",
+            config_path,
+        ],
         catch_exceptions=False,
     )
     assert result.exit_code == 1, result
@@ -345,7 +351,9 @@ def test_recent_works(runner, db):
 
 def test_report_returns_ok_when_empty_db(runner, db):
     json_result = runner.invoke(
-        cli, ["--db", str(db.db_path), "report", "--format", "json"], catch_exceptions=False
+        cli,
+        ["--db", str(db.db_path), "report", "--format", "json"],
+        catch_exceptions=False,
     )
     assert json_result.exit_code == 0, json_result
     report = json.loads(json_result.stdout)
@@ -358,12 +366,16 @@ def test_report_returns_ok_when_empty_db(runner, db):
 def test_report_exits_with_error_when_latest_value_violates_threshold(runner, db):
     api.push(db, "errors", value=10, absolute_max=0, diffable_content="foo")
 
-    result = runner.invoke(cli, ["--db", str(db.db_path), "report"], catch_exceptions=False)
+    result = runner.invoke(
+        cli, ["--db", str(db.db_path), "report"], catch_exceptions=False
+    )
 
     assert result.exit_code == 1, result.stdout + "\n" + result.stderr
 
     json_result = runner.invoke(
-        cli, ["--db", str(db.db_path), "report", "--format", "json"], catch_exceptions=False
+        cli,
+        ["--db", str(db.db_path), "report", "--format", "json"],
+        catch_exceptions=False,
     )
 
     assert json_result.exit_code == 1, json_result
@@ -375,14 +387,20 @@ def test_report_exits_with_error_when_latest_value_violates_threshold(runner, db
 
 
 def test_report_returns_ok_when_non_current_generation_violates_threshold(runner, db):
-    api.push(db, "errors", value=10, absolute_max=0, diffable_content="foo", generation=1)
+    api.push(
+        db, "errors", value=10, absolute_max=0, diffable_content="foo", generation=1
+    )
 
-    result = runner.invoke(cli, ["--db", str(db.db_path), "report"], catch_exceptions=False)
+    result = runner.invoke(
+        cli, ["--db", str(db.db_path), "report"], catch_exceptions=False
+    )
 
     assert result.exit_code == 1, result.stdout + "\n" + result.stderr
 
     json_result = runner.invoke(
-        cli, ["--db", str(db.db_path), "report", "--generation", "2", "--format", "json"], catch_exceptions=False
+        cli,
+        ["--db", str(db.db_path), "report", "--generation", "2", "--format", "json"],
+        catch_exceptions=False,
     )
 
     assert json_result.exit_code == 0, json_result
@@ -424,7 +442,9 @@ def test_report_with_previous_no_alert_skips_previous_value(runner, db):
     assert no_alert_result.exit_code == 0, no_alert_result.output
     api.push(db, "errors", value=20, relative_max=0)
 
-    result = runner.invoke(cli, ["--db", str(db.db_path), "report"], catch_exceptions=False)
+    result = runner.invoke(
+        cli, ["--db", str(db.db_path), "report"], catch_exceptions=False
+    )
 
     assert result.exit_code == 0, result.output + "\n" + result.output
 
@@ -433,7 +453,9 @@ def test_report_with_new_epoch_doesnt_alert(runner, db):
     api.push(db, "errors", value=10, absolute_max=0)
     api.push(db, "errors", value=20, relative_max=0, epoch=1)
 
-    result = runner.invoke(cli, ["--db", str(db.db_path), "report"], catch_exceptions=False)
+    result = runner.invoke(
+        cli, ["--db", str(db.db_path), "report"], catch_exceptions=False
+    )
 
     assert result.exit_code == 0, result.output + "\n" + result.output
 

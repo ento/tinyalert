@@ -18,7 +18,7 @@ def test_push_with_all_fields(db):
         url="test",
         epoch=1,
         generation=100,
-        tags={"foo": 1}
+        tags={"foo": 1},
     )
     assert p.metric_value == 1
     assert p.absolute_max == 2
@@ -233,7 +233,14 @@ def test_gather_report_data_when_two_points(db):
         url="prev_url",
         tags={"foo": "bar"},
     )
-    api.push(db, "errors", value=2, diffable_content="latest", url="current_url", tags={"foo": "baz"})
+    api.push(
+        db,
+        "errors",
+        value=2,
+        diffable_content="latest",
+        url="current_url",
+        tags={"foo": "baz"},
+    )
 
     data = api.gather_report_data(db, "errors")
 
@@ -266,7 +273,14 @@ def test_gather_report_data_when_two_points_from_older_generation(db):
         url="prev_url",
         tags={"foo": "bar"},
     )
-    api.push(db, "errors", value=2, diffable_content="latest", url="current_url", tags={"foo": "baz"})
+    api.push(
+        db,
+        "errors",
+        value=2,
+        diffable_content="latest",
+        url="current_url",
+        tags={"foo": "baz"},
+    )
 
     data = api.gather_report_data(db, "errors", head_generation=1)
 
