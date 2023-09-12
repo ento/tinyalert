@@ -10,7 +10,8 @@ Creating an alembic revision
 
 ```sh
 cd src/tinyalert
-tinyalert db.sqlite migrate revision --autogenerate -m "Description"
+tinyalert migrate upgrade head
+tinyalert migrate revision --autogenerate -m "Description"
 ```
 
 Packaging
