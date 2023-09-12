@@ -11,6 +11,9 @@ from .reporters import DiffReporter, ListReporter, StatusReporter, TableReporter
 from .types import Config
 
 
+ENVVAR_PREFIX = "TINYALERT_"
+
+
 class JSONType(click.ParamType):
     name = "json"
 
@@ -19,7 +22,7 @@ class JSONType(click.ParamType):
 
 
 @click.group()
-@click.option("--db", "db_path", required=True, default="tinyalert.sqlite", type=click.Path(exists=False))
+@click.option("--db", "db_path", required=True, default="tinyalert.sqlite", type=click.Path(exists=False), show_default=True)
 @click.pass_context
 def cli(ctx, db_path):
     ctx.obj = db.DB(db_path)
@@ -36,11 +39,11 @@ def cli(ctx, db_path):
 @click.option(
     "--diffable", default=None, help="Text content suitable for showing diffs"
 )
-@click.option("--url", default=None, help="URL")
-@click.option("--epoch", type=int, default=0, help="Epoch number")
-@click.option("-n", "--generation", type=int, default=0, help="Generation number")
-@click.option("--tag", "tags", type=(str, str), multiple=True, help="Key-value pair to store as a tag. Value is stored as a string")
-@click.option("--tagjson", "json_tags", type=(str, JSONType()), multiple=True, help="Key-value pair to store as a tag. Value is evaluated as JSON")
+@click.option("--url", default=None, help="URL", envvar=ENVVAR_PREFIX + "URL")
+@click.option("--epoch", type=int, default=0, help="Epoch number", envvar=ENVVAR_PREFIX + "EPOCH", show_default=True)
+@click.option("-n", "--generation", type=int, default=0, help="Generation number", envvar=ENVVAR_PREFIX + "GENERATION", show_default=True)
+@click.option("--tag", "tags", type=(str, str), multiple=True, help="Key-value pair to store as a tag. Value is stored as a string", envvar=ENVVAR_PREFIX + "TAGS")
+@click.option("--tagjson", "json_tags", type=(str, JSONType()), multiple=True, help="Key-value pair to store as a tag. Value is evaluated as JSON", envvar=ENVVAR_PREFIX + "JSON_TAGS")
 @click.pass_context
 def push(
     ctx,
@@ -91,6 +94,7 @@ def split_values(ctx, param, value):
     "config_path",
     type=click.Path(exists=True, path_type=Path),
     default="tinyalert.toml",
+    show_default=True,
 )
 @click.option(
     "--metrics",
@@ -98,10 +102,10 @@ def split_values(ctx, param, value):
     callback=split_values,
     help="Comma-separated names of metrics to measure",
 )
-@click.option("-n", "--generation", type=int, default=0, help="Generation number")
-@click.option("--url", default=None, help="URL")
-@click.option("--tag", "tags", type=(str, str), multiple=True, help="Key-value pair to store as a tag. Value is stored as a string")
-@click.option("--tagjson", "json_tags", type=(str, JSONType()), multiple=True, help="Key-value pair to store as a tag. Value is evaluated as JSON")
+@click.option("-n", "--generation", type=int, default=0, help="Generation number", envvar=ENVVAR_PREFIX + "GENERATION", show_default=True)
+@click.option("--url", default=None, help="URL", envvar=ENVVAR_PREFIX + "URL")
+@click.option("--tag", "tags", type=(str, str), multiple=True, help="Key-value pair to store as a tag. Value is stored as a string", envvar=ENVVAR_PREFIX + "TAGS")
+@click.option("--tagjson", "json_tags", type=(str, JSONType()), multiple=True, help="Key-value pair to store as a tag. Value is evaluated as JSON", envvar=ENVVAR_PREFIX + "JSON_TAGS")
 @click.pass_context
 def measure(
     ctx: click.Context,
@@ -175,12 +179,20 @@ def recent(ctx, output_format):
 
 
 @cli.command()
-@click.option("-n", "--generation", type=int, default=None, help="Only report on metrics with latest point that matches this generation")
+@click.option(
+    "-n",
+    "--generation",
+    type=int,
+    default=None,
+    help="Only report on metrics with latest point that matches this generation",
+    envvar=ENVVAR_PREFIX + "GENERATION",
+)
 @click.option("--format", "output_format", default=None)
 @click.option(
     "--mute/--no-mute",
     default=False,
     help="If muted, don't exit with an error. Marks latest data points as skipped if they violate a threshold.",
+    show_default=True,
 )
 @click.pass_context
 def report(ctx, generation, output_format, mute):
