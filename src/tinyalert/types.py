@@ -89,8 +89,15 @@ class MetricDiff(BaseModel):
     diff: str
 
 
+class GenerationMatchStatus(enum.Enum):
+    NONE_SPECIFIED = "none_specified"
+    NONE_MATCHED = "none_matched"
+    MATCHED = "matched"
+
+
 class ReportData(BaseModel):
     metric_name: str
+    generation_status: GenerationMatchStatus = GenerationMatchStatus.NONE_SPECIFIED
     latest_value: Optional[float] = None
     previous_value: Optional[float] = None
     latest_values: List[float] = Field(default_factory=list)
@@ -107,6 +114,8 @@ class ReportData(BaseModel):
 
     @cached_property
     def violates_absolute_max(self) -> bool:
+        if self.generation_status == GenerationMatchStatus.NONE_MATCHED:
+            return False
         if self.latest_value is None:
             return False
         if self.absolute_max is None:
@@ -115,6 +124,8 @@ class ReportData(BaseModel):
 
     @cached_property
     def violates_absolute_min(self) -> bool:
+        if self.generation_status == GenerationMatchStatus.NONE_MATCHED:
+            return False
         if self.latest_value is None:
             return False
         if self.absolute_min is None:
@@ -123,6 +134,8 @@ class ReportData(BaseModel):
 
     @cached_property
     def violates_relative_max(self) -> bool:
+        if self.generation_status == GenerationMatchStatus.NONE_MATCHED:
+            return False
         latest_change = self.latest_change
         if latest_change is None:
             return False
@@ -132,6 +145,8 @@ class ReportData(BaseModel):
 
     @cached_property
     def violates_relative_min(self) -> bool:
+        if self.generation_status == GenerationMatchStatus.NONE_MATCHED:
+            return False
         latest_change = self.latest_change
         if latest_change is None:
             return False

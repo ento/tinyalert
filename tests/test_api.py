@@ -1,7 +1,7 @@
 import pytest
 
 from tinyalert import api
-from tinyalert.types import MeasureType
+from tinyalert.types import MeasureType, GenerationMatchStatus
 
 
 def test_push_with_all_fields(db):
@@ -172,6 +172,7 @@ def test_gather_report_data_when_no_data(db):
     data = api.gather_report_data(db, "errors")
 
     assert data.metric_name == "errors"
+    assert data.generation_status == GenerationMatchStatus.NONE_SPECIFIED
     assert data.latest_values == []
     assert data.latest_value is None
     assert data.previous_value is None
@@ -205,6 +206,7 @@ def test_gather_report_data_when_single_point(db):
     data = api.gather_report_data(db, "errors")
 
     assert data.metric_name == "errors"
+    assert data.generation_status == GenerationMatchStatus.NONE_SPECIFIED
     assert data.latest_values == [1]
     assert data.latest_value == 1
     assert data.previous_value is None
@@ -245,6 +247,7 @@ def test_gather_report_data_when_two_points(db):
     data = api.gather_report_data(db, "errors")
 
     assert data.metric_name == "errors"
+    assert data.generation_status == GenerationMatchStatus.NONE_SPECIFIED
     assert data.latest_values == [1.0, 2.0]
     assert data.latest_value == 2
     assert data.previous_value == 1
@@ -285,19 +288,20 @@ def test_gather_report_data_when_two_points_from_older_generation(db):
     data = api.gather_report_data(db, "errors", head_generation=1)
 
     assert data.metric_name == "errors"
+    assert data.generation_status == GenerationMatchStatus.NONE_MATCHED
     assert data.latest_values == [1.0, 2.0]
-    assert data.latest_value is None
-    assert data.previous_value is None
+    assert data.latest_value == 2.0
+    assert data.previous_value == 1.0
     assert data.absolute_max is None
     assert data.absolute_min is None
     assert data.relative_max is None
     assert data.relative_min is None
-    assert data.latest_diffable_content is None
-    assert data.previous_diffable_content is None
-    assert data.latest_url is None
-    assert data.previous_url is None
-    assert data.latest_tags is None
-    assert data.previous_tags is None
+    assert data.latest_diffable_content == "latest"
+    assert data.previous_diffable_content == "previous"
+    assert data.latest_url == "current_url"
+    assert data.previous_url == "prev_url"
+    assert data.latest_tags == {"foo": "baz"}
+    assert data.previous_tags == {"foo": "bar"}
 
 
 def test_gather_report_data_dont_alert_on_skipped_data(db):
@@ -312,6 +316,7 @@ def test_gather_report_data_dont_alert_on_skipped_data(db):
     data = api.gather_report_data(db, "errors")
 
     assert data.metric_name == "errors"
+    assert data.generation_status == GenerationMatchStatus.NONE_SPECIFIED
     assert data.latest_values == [1.0, 2.0, 3.0, 4.0]
     assert data.latest_value == 4
     assert data.previous_value == 2
@@ -324,6 +329,7 @@ def test_gather_report_data_dont_alert_on_different_epoch(db):
     data = api.gather_report_data(db, "errors")
 
     assert data.metric_name == "errors"
+    assert data.generation_status == GenerationMatchStatus.NONE_SPECIFIED
     assert data.latest_values == [1.0, 2.0]
     assert data.latest_value == 2
     assert data.previous_value is None

@@ -5,7 +5,7 @@ from sparklines import sparklines
 from tabulate import tabulate
 from termcolor import colored
 
-from .types import MetricDiff, ReportData
+from .types import MetricDiff, ReportData, GenerationMatchStatus
 
 
 class TableReporter:
@@ -45,7 +45,7 @@ class TableReporter:
             )
             row["latest_value"] = colored_value_string
 
-        if report_data.previous_value is not None:
+        if report_data.previous_value is not None and report_data.generation_status != GenerationMatchStatus.NONE_MATCHED:
             change_string = f"{report_data.latest_change:+g}"
             colored_change_string = (
                 (colored(change_string, "yellow") + " [!]")
@@ -78,11 +78,12 @@ class TableReporter:
             row["trend"] = sparklines(report_data.latest_values)[0]
 
         details = []
-        if report_data.previous_url:
-            details.append(f"[prev]({report_data.previous_url})")
+        if report_data.previous_url and report_data.generation_status != GenerationMatchStatus.NONE_MATCHED:
+            details.append(f"[baseline]({report_data.previous_url})")
         if report_data.latest_url:
-            details.append(f"[latest]({report_data.latest_url})")
-        row["details"] = " ".join(details)
+            title = "baseline" if report_data.generation_status == GenerationMatchStatus.NONE_MATCHED else "latest"
+            details.append(f"[{title}]({report_data.latest_url})")
+        row["details"] = " \| ".join(details)
 
         return row
 

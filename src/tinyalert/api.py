@@ -2,10 +2,10 @@ import datetime
 import shlex
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, Sequence
+from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
 
 from .db import DB
-from .types import EvalType, MeasureResult, MeasureType, Point, ReportData, SourceType
+from .types import EvalType, MeasureResult, MeasureType, Point, ReportData, SourceType, GenerationMatchStatus
 
 
 def push(
@@ -95,7 +95,8 @@ def gather_report_data(
     data.latest_values = [p.metric_value for p in reversed(points[:10])]
 
     eligible_points = _iter_alert_eligible_points(points, head_generation)
-    latest = next(eligible_points, None)
+    latest, generation_status = next(eligible_points, None)
+    data.generation_status = generation_status
     if latest:
         data.latest_value = latest.metric_value
         data.absolute_max = latest.absolute_max
@@ -106,7 +107,7 @@ def gather_report_data(
         data.latest_url = latest.url
         data.latest_tags = latest.tags
 
-    previous = next(eligible_points, None)
+    previous, _ = next(eligible_points, (None, None))
     if previous:
         data.previous_value = previous.metric_value
         data.previous_diffable_content = previous.diffable_content
@@ -118,17 +119,18 @@ def gather_report_data(
 
 def _iter_alert_eligible_points(
     all_points: Sequence[Point], head_generation: Optional[int] = None
-) -> Iterator[Point]:
+) -> Iterator[Tuple[Point, GenerationMatchStatus]]:
     active_epoch = None
+    generation_status = GenerationMatchStatus.NONE_SPECIFIED if head_generation is None else GenerationMatchStatus.NONE_MATCHED
     for i, p in enumerate(all_points):
         if i == 0:
-            if head_generation is not None and p.generation != head_generation:
-                break
+            if head_generation is not None and p.generation == head_generation:
+                generation_status = GenerationMatchStatus.MATCHED
             active_epoch = p.epoch
-            yield p
+            yield p, generation_status
             continue
         if p.skipped:
             continue
         if p.epoch != active_epoch:
             break
-        yield p
+        yield p, generation_status

@@ -1,6 +1,6 @@
 import pytest
 
-from tinyalert.types import ReportData
+from tinyalert.types import ReportData, GenerationMatchStatus
 
 
 @pytest.mark.parametrize(
@@ -131,6 +131,29 @@ def test_report_data_violates_relative_limits(
     monkeypatch.setattr(ReportData, "violates_relative_min", violates_min)
 
     assert data.violates_relative_limits == expected
+
+
+@pytest.mark.parametrize("gen_status,expected", [
+    (GenerationMatchStatus.NONE_SPECIFIED, True),
+    (GenerationMatchStatus.NONE_MATCHED, False),
+    (GenerationMatchStatus.MATCHED, True),
+])
+def test_report_data_doesnt_violate_any_threshold_when_generation_doesnt_match(gen_status,expected):
+    data = ReportData(
+        metric_name="test",
+        absolute_max=0,
+        absolute_min=20,
+        relative_max=0,
+        relative_min=20,
+        previous_value=0,
+        latest_value=10,
+        generation_status=gen_status,
+    )
+
+    assert data.violates_absolute_max is expected
+    assert data.violates_absolute_min is expected
+    assert data.violates_relative_max is expected
+    assert data.violates_relative_min is expected
 
 
 @pytest.mark.parametrize(
