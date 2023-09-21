@@ -8,7 +8,7 @@ from tinyalert.reporters import (
     StatusReporter,
     TableReporter,
 )
-from tinyalert.types import ReportData
+from tinyalert.types import ReportData, GenerationMatchStatus
 
 
 def test_table_reporter_outputs(snapshot):
@@ -35,6 +35,27 @@ def test_table_reporter_outputs(snapshot):
 def test_table_reporter_omits_details_column_when_possible(snapshot):
     reporter = TableReporter()
     reporter.add(ReportData(metric_name="null"))
+
+    assert reporter.get_value() == snapshot
+
+
+def test_table_reporter_outputs_latest_value_when_generation_didnt_match(snapshot):
+    reporter = TableReporter()
+    reporter.add(
+        ReportData(
+            metric_name="kitchen-sink",
+            generation_status=GenerationMatchStatus.NONE_MATCHED,
+            latest_value=2,
+            previous_value=1,
+            latest_values=[0, 1, 2],
+            absolute_max=0,
+            absolute_min=3,
+            relative_max=0,
+            relative_min=2,
+            latest_url="http://example.com/latest",
+            previous_url="http://example.com/prev",
+        )
+    )
 
     assert reporter.get_value() == snapshot
 
