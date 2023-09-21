@@ -1,7 +1,7 @@
 import pytest
 
 from tinyalert import api
-from tinyalert.types import MeasureType, GenerationMatchStatus
+from tinyalert.types import GenerationMatchStatus, MeasureType
 
 
 def test_push_with_all_fields(db):

@@ -5,7 +5,15 @@ from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
 
 from .db import DB
-from .types import EvalType, MeasureResult, MeasureType, Point, ReportData, SourceType, GenerationMatchStatus
+from .types import (
+    EvalType,
+    GenerationMatchStatus,
+    MeasureResult,
+    MeasureType,
+    Point,
+    ReportData,
+    SourceType,
+)
 
 
 def push(
@@ -121,7 +129,11 @@ def _iter_alert_eligible_points(
     all_points: Sequence[Point], head_generation: Optional[int] = None
 ) -> Iterator[Tuple[Point, GenerationMatchStatus]]:
     active_epoch = None
-    generation_status = GenerationMatchStatus.NONE_SPECIFIED if head_generation is None else GenerationMatchStatus.NONE_MATCHED
+    generation_status = (
+        GenerationMatchStatus.NONE_SPECIFIED
+        if head_generation is None
+        else GenerationMatchStatus.NONE_MATCHED
+    )
     for i, p in enumerate(all_points):
         if i == 0:
             if head_generation is not None and p.generation == head_generation:

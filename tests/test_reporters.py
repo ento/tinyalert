@@ -8,7 +8,7 @@ from tinyalert.reporters import (
     StatusReporter,
     TableReporter,
 )
-from tinyalert.types import ReportData, GenerationMatchStatus
+from tinyalert.types import GenerationMatchStatus, ReportData
 
 
 def test_table_reporter_outputs(snapshot):

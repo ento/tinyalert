@@ -1,6 +1,6 @@
 import pytest
 
-from tinyalert.types import ReportData, GenerationMatchStatus
+from tinyalert.types import GenerationMatchStatus, ReportData
 
 
 @pytest.mark.parametrize(
@@ -133,12 +133,17 @@ def test_report_data_violates_relative_limits(
     assert data.violates_relative_limits == expected
 
 
-@pytest.mark.parametrize("gen_status,expected", [
-    (GenerationMatchStatus.NONE_SPECIFIED, True),
-    (GenerationMatchStatus.NONE_MATCHED, False),
-    (GenerationMatchStatus.MATCHED, True),
-])
-def test_report_data_doesnt_violate_any_threshold_when_generation_doesnt_match(gen_status,expected):
+@pytest.mark.parametrize(
+    "gen_status,expected",
+    [
+        (GenerationMatchStatus.NONE_SPECIFIED, True),
+        (GenerationMatchStatus.NONE_MATCHED, False),
+        (GenerationMatchStatus.MATCHED, True),
+    ],
+)
+def test_report_data_doesnt_violate_any_threshold_when_generation_doesnt_match(
+    gen_status, expected
+):
     data = ReportData(
         metric_name="test",
         absolute_max=0,
@@ -206,6 +211,11 @@ def test_report_data_latest_changes(monkeypatch, value, prev, expected):
     ],
 )
 def test_report_data_latest_changes(monkeypatch, gen_status, value, prev, expected):
-    data = ReportData(metric_name="test", generation_status=gen_status, latest_value=value, previous_value=prev)
+    data = ReportData(
+        metric_name="test",
+        generation_status=gen_status,
+        latest_value=value,
+        previous_value=prev,
+    )
 
     assert data.status_character == expected
