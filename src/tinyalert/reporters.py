@@ -10,6 +10,7 @@ from .types import MetricDiff, ReportData, GenerationMatchStatus
 
 class TableReporter:
     header = dict(
+        status_character="",
         metric_name="Name",
         latest_value="Value",
         abs_limits="Thresholds",
@@ -27,6 +28,7 @@ class TableReporter:
 
     def _make_row(self, report_data: ReportData) -> dict:
         row = dict(
+            status_character=report_data.status_character,
             metric_name=report_data.metric_name,
             latest_value="-",
             abs_limits="-",

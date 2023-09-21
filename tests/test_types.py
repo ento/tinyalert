@@ -186,3 +186,26 @@ def test_report_data_latest_changes(monkeypatch, value, prev, expected):
     data = ReportData(metric_name="test", latest_value=value, previous_value=prev)
 
     assert data.latest_change == expected
+
+
+@pytest.mark.parametrize(
+    "gen_status,value,prev,expected",
+    [
+        (GenerationMatchStatus.NONE_SPECIFIED, None, None, "-"),
+        (GenerationMatchStatus.NONE_SPECIFIED, 0, 0, "="),
+        (GenerationMatchStatus.NONE_SPECIFIED, 0, 1, "▿"),
+        (GenerationMatchStatus.NONE_SPECIFIED, 1, 0, "▵"),
+        (GenerationMatchStatus.NONE_MATCHED, None, None, "-"),
+        (GenerationMatchStatus.NONE_MATCHED, 0, 0, "-"),
+        (GenerationMatchStatus.NONE_MATCHED, 0, 1, "-"),
+        (GenerationMatchStatus.NONE_MATCHED, 1, 0, "-"),
+        (GenerationMatchStatus.MATCHED, None, None, "-"),
+        (GenerationMatchStatus.MATCHED, 0, 0, "="),
+        (GenerationMatchStatus.MATCHED, 0, 1, "▿"),
+        (GenerationMatchStatus.MATCHED, 1, 0, "▵"),
+    ],
+)
+def test_report_data_latest_changes(monkeypatch, gen_status, value, prev, expected):
+    data = ReportData(metric_name="test", generation_status=gen_status, latest_value=value, previous_value=prev)
+
+    assert data.status_character == expected

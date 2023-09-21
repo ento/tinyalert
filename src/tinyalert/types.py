@@ -173,3 +173,16 @@ class ReportData(BaseModel):
         if self.previous_value is None:
             return None
         return self.latest_value - self.previous_value
+
+    @cached_property
+    def status_character(self) -> str:
+        if self.generation_status == GenerationMatchStatus.NONE_MATCHED:
+            return "-"
+        latest_change = self.latest_change
+        if latest_change is None:
+            return "-"
+        if latest_change > 0:
+            return "▵"
+        if latest_change < 0:
+            return "▿"
+        return "="
