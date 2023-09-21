@@ -403,7 +403,7 @@ def test_report_returns_ok_when_non_current_generation_violates_threshold(runner
         catch_exceptions=False,
     )
 
-    assert json_result.exit_code == 0, json_result
+    assert json_result.exit_code == 0, json_result.output
     report = json.loads(json_result.stdout)
     assert report["table"]
     assert not report["list"]
