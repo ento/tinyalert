@@ -1,7 +1,6 @@
 import difflib
 import textwrap
 
-from sparklines import sparklines
 from tabulate import tabulate
 from termcolor import colored
 
@@ -16,7 +15,6 @@ class TableReporter:
         abs_limits="Thresholds",
         change="Change",
         rel_limits="Thresholds",
-        trend="Trend",
         details="Details",
     )
 
@@ -34,7 +32,6 @@ class TableReporter:
             abs_limits="-",
             change="-",
             rel_limits="-",
-            trend="",
             details="",
         )
 
@@ -78,9 +75,6 @@ class TableReporter:
             if report_data.relative_max is not None:
                 rel_thresholds.append(f"Δ<={report_data.relative_max}")
             row["rel_limits"] = ", ".join(rel_thresholds)
-
-        if report_data.latest_values:
-            row["trend"] = sparklines(report_data.latest_values)[0]
 
         details = []
         if (
