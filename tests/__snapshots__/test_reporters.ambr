@@ -36,7 +36,7 @@
 # ---
 # name: test_table_reporter_outputs
   '''
-  |    | Name         | Value   | Thresholds     | Change   | Thresholds     | Details                                                                    |
+  |    | Name         | Value   | Thresholds     | Change   | Thresholds     | Source                                                                     |
   |----|--------------|---------|----------------|----------|----------------|----------------------------------------------------------------------------|
   | -  | null         | -       | -              | -        | -              |                                                                            |
   | ▵  | kitchen-sink | 2 [!]   | 3.0<=v, v<=0.0 | +1 [!]   | 2.0<=Δ, Δ<=0.0 | [baseline](http://example.com/prev) \| [latest](http://example.com/latest) |
@@ -44,7 +44,7 @@
 # ---
 # name: test_table_reporter_outputs_latest_value_when_generation_didnt_match
   '''
-  |    | Name         |   Value | Thresholds     | Change   | Thresholds     | Details                               |
+  |    | Name         |   Value | Thresholds     | Change   | Thresholds     | Source                                |
   |----|--------------|---------|----------------|----------|----------------|---------------------------------------|
   | -  | kitchen-sink |       2 | 3.0<=v, v<=0.0 | -        | 2.0<=Δ, Δ<=0.0 | [baseline](http://example.com/latest) |
   '''

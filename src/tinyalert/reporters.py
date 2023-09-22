@@ -15,7 +15,7 @@ class TableReporter:
         abs_limits="Thresholds",
         change="Change",
         rel_limits="Thresholds",
-        details="Details",
+        source="Source",
     )
 
     def __init__(self):
@@ -32,7 +32,7 @@ class TableReporter:
             abs_limits="-",
             change="-",
             rel_limits="-",
-            details="",
+            source="",
         )
 
         if report_data.latest_value is not None:
@@ -76,30 +76,30 @@ class TableReporter:
                 rel_thresholds.append(f"Δ<={report_data.relative_max}")
             row["rel_limits"] = ", ".join(rel_thresholds)
 
-        details = []
+        sources = []
         if (
             report_data.previous_url
             and report_data.generation_status != GenerationMatchStatus.NONE_MATCHED
         ):
-            details.append(f"[baseline]({report_data.previous_url})")
+            sources.append(f"[baseline]({report_data.previous_url})")
         if report_data.latest_url:
             title = (
                 "baseline"
                 if report_data.generation_status == GenerationMatchStatus.NONE_MATCHED
                 else "latest"
             )
-            details.append(f"[{title}]({report_data.latest_url})")
-        row["details"] = " \| ".join(details)
+            sources.append(f"[{title}]({report_data.latest_url})")
+        row["source"] = " \| ".join(sources)
 
         return row
 
     def get_value(self) -> str:
         header = dict(self.header)
         rows = [dict(row) for row in self.rows]
-        if not any(row["details"] for row in rows):
-            del header["details"]
+        if not any(row["source"] for row in rows):
+            del header["source"]
             for row in rows:
-                del row["details"]
+                del row["source"]
         return tabulate(rows, header, tablefmt="github")
 
 
