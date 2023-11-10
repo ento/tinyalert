@@ -300,10 +300,10 @@ def report(ctx, generation, output_format, mute):
 
 
 @cli.command()
-@click.option("--keep", type=int, required=True, help="How many points to keep")
+@click.option("--keep-last", type=int, required=False, help="Keep the specified number of points for each metric")
 @click.pass_context
-def prune(ctx, keep):
-    count = api.prune(ctx.obj, keep=keep)
+def prune(ctx, keep_last):
+    count = api.prune(ctx.obj, keep=keep_last)
     click.echo(f"Pruned {count} points in total", err=True)
 
 

@@ -469,7 +469,7 @@ def test_prune_keeps_specified_number_of_points(runner, db):
     api.push(db, "coverage", value=7)
 
     result = runner.invoke(
-        cli, ["--db", str(db.db_path), "prune", "--keep", 1], catch_exceptions=False
+        cli, ["--db", str(db.db_path), "prune", "--keep-last", 1], catch_exceptions=False
     )
     assert result.exit_code == 0, result.output
 
