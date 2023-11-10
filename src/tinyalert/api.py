@@ -105,8 +105,9 @@ def gather_report_data(
     data.latest_values = [p.metric_value for p in reversed(points[:10])]
 
     eligible_points = _iter_alert_eligible_points(points, head_generation)
-    latest, generation_status = next(eligible_points, None)
-    data.generation_status = generation_status
+    latest, previous, generation_status = _report_points(eligible_points)
+    if generation_status:
+        data.generation_status = generation_status
     if latest:
         data.latest_value = latest.metric_value
         data.absolute_max = latest.absolute_max
@@ -116,8 +117,6 @@ def gather_report_data(
         data.latest_diffable_content = latest.diffable_content
         data.latest_url = latest.url
         data.latest_tags = latest.tags
-
-    previous, _ = next(eligible_points, (None, None))
     if previous:
         data.previous_value = previous.metric_value
         data.previous_diffable_content = previous.diffable_content
@@ -125,6 +124,14 @@ def gather_report_data(
         data.previous_tags = previous.tags
 
     return data
+
+
+def _report_points(
+    eligible_points: Iterator[Tuple[DBPoint, GenerationMatchStatus]],
+) -> Tuple[Optional[DBPoint], Optional[DBPoint], Optional[GenerationMatchStatus]]:
+    latest, generation_status = next(eligible_points, (None, None))
+    previous, _ = next(eligible_points, (None, None))
+    return (latest, previous, generation_status)
 
 
 def _iter_alert_eligible_points(
