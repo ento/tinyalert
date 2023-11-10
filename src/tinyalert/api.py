@@ -4,7 +4,7 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
 
-from .db import DB
+from .db import DB, Point as DBPoint
 from .types import (
     EvalType,
     GenerationMatchStatus,
@@ -77,7 +77,7 @@ def skip_latest(db: DB, metric_name: str):
 def combine(dest_db: DB, src_dbs: List[DB]):
     for src_db in src_dbs:
         for p in src_db.iter_all():
-            dest_db.add(p)
+            dest_db.add(Point.model_validate(p))
 
 
 def prune(db: DB, keep: int = 10) -> int:
@@ -88,7 +88,7 @@ def prune(db: DB, keep: int = 10) -> int:
 def recent(db: DB, count: int = 10) -> Iterator[Point]:
     assert count > 0, "count must be greater than 0"
     for p in db.recent(count=count):
-        yield p
+        yield Point.model_validate(p)
 
 
 def gather_report_data(
@@ -126,8 +126,8 @@ def gather_report_data(
 
 
 def _iter_alert_eligible_points(
-    all_points: Sequence[Point], head_generation: Optional[int] = None
-) -> Iterator[Tuple[Point, GenerationMatchStatus]]:
+    all_points: Sequence[DBPoint], head_generation: Optional[int] = None
+) -> Iterator[Tuple[DBPoint, GenerationMatchStatus]]:
     active_epoch = None
     generation_status = (
         GenerationMatchStatus.NONE_SPECIFIED

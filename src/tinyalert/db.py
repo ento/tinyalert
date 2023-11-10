@@ -81,7 +81,7 @@ class DB:
 
     def recent(
         self, metric_name: Optional[str] = None, count: Optional[int] = 10
-    ) -> Generator[types.Point, None, None]:
+    ) -> Generator[Point, None, None]:
         query = select(Point)
         if metric_name is not None:
             query = query.filter_by(metric_name=metric_name)
@@ -90,13 +90,13 @@ class DB:
             query = query.limit(count)
         with self.session() as session:
             for row in session.execute(query):
-                yield types.Point.model_validate(row[0])
+                yield row[0]
 
-    def iter_all(self) -> Generator[types.Point, None, None]:
+    def iter_all(self) -> Generator[Point, None, None]:
         query = select(Point)
         with self.session() as session:
             for row in session.execute(query):
-                yield types.Point.model_validate(row[0])
+                yield row[0]
 
     def iter_metric_names(self) -> Generator[str, None, None]:
         with self.session() as session:
