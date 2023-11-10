@@ -17,7 +17,7 @@
           pkgs.act
           pkgs.nodejs
           pkgs.poetry
-          pkgs.sqlite
+          pkgs.sqlite-interactive
           defaultPython
         ];
         app = mkPoetryApplication {
