@@ -99,4 +99,4 @@ jobs:
         uses: ./
         with:
           db-path: db.sqlite
-          prune: 1
+          prune: --keep-last 1 --keep-within 1d --keep-auto

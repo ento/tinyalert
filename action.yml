@@ -9,7 +9,7 @@ inputs:
     required: false
     default: 'false'
   prune:
-    description: 'Prune measured values while keeping the specified number of values per metric'
+    description: 'Prune metric points using these flag(s)'
     default: null
     required: false
   install:
@@ -108,6 +108,6 @@ runs:
       if: ${{ inputs.report == 'true' }}
     - name: prune
       run: |
-        ${{ steps.py.outputs.python-path }} "${{ github.action_path }}dist/app.pex" --db "${{ inputs.db-path }}" prune --keep "${{ inputs.prune }}"
+        ${{ steps.py.outputs.python-path }} "${{ github.action_path }}dist/app.pex" --db "${{ inputs.db-path }}" prune ${{ inputs.prune }}
       shell: bash
       if: ${{ inputs.prune }}
