@@ -1,10 +1,15 @@
 import os
+import datetime
+from csv import DictReader
+from io import StringIO
+from pathlib import Path
 
 import pytest
 from syrupy import PyTestLocation
 from syrupy.assertion import SnapshotAssertion
 from syrupy.extensions.amber import AmberSnapshotExtension
 
+from tinyalert import api
 from tinyalert.db import DB
 
 ENV_VAR = "PANTS_WITH_SNAPSHOTS_HACK_DIR"
@@ -64,3 +69,16 @@ def create_db(tmp_path):
 @pytest.fixture
 def db(create_db):
     return create_db("metrics/tinyalert.db")
+
+
+@pytest.fixture
+def db_from_csv(freezer, create_db):
+    def inner(csv_content: str) -> DB:
+        db = create_db("metrics/tinyalert.db")
+        io = StringIO(csv_content.strip())
+        reader = DictReader(io, skipinitialspace=True)
+        for row in reader:
+            api.push(db, **row)
+            freezer.tick(delta=datetime.timedelta(days=1))
+        return db
+    return inner
