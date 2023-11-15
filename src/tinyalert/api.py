@@ -82,9 +82,75 @@ def combine(dest_db: DB, src_dbs: List[DB]):
             dest_db.add(Point.model_validate(p))
 
 
-def prune(db: DB, keep: int = 10) -> int:
-    assert keep > 0, "keep must be greater than 0"
-    return db.prune(keep=keep)
+def prune(db: DB, keep_last: Optional[int] = None, keep_within: Optional[datetime.timedelta] = None, keep_auto: bool = False) -> int:
+    total_pruned = 0
+    for metric_name in db.iter_metric_names():
+        points = list(db.recent(metric_name, count=None))
+
+        auto_prune_before = _prune_point_auto(points)
+        prune_candidates = list(filter(None, (
+            _prune_point_last(points, keep_last),
+            _prune_point_within(points, auto_prune_before, keep_within),
+            auto_prune_before if keep_auto else None,
+        )))
+
+        if not prune_candidates:
+            continue
+
+        # Take the oldest point
+        prune_before = sorted(prune_candidates, key=lambda p: (p.time, p.id))[0]
+        print(f"Prune candidates", [p.metric_value for p in prune_candidates], "before", prune_before.metric_value)
+        total_pruned += db.prune_before(prune_before)
+
+    if total_pruned > 0:
+        db.vacuum()
+
+    return total_pruned
+
+
+def _prune_point_last(points: List[DBPoint], keep_last: Optional[int]) -> Optional[DBPoint]:
+    assert keep_last is None or keep_last > 0
+    if not points:
+        return
+    if keep_last is None:
+        return
+    if len(points) < keep_last:
+        return points[-1]
+    return points[keep_last - 1]
+
+
+def _prune_point_within(points: List[DBPoint], auto_prune_before: Optional[DBPoint], keep_within: Optional[datetime.timedelta]) -> Optional[DBPoint]:
+    assert keep_within is None or keep_within.total_seconds() > 0
+    assert points
+    if keep_within is None:
+        return
+    if len(points) == 1:
+        return points[0]
+    anchor_point = auto_prune_before or points[0]
+    keep_within_abs = anchor_point.time - keep_within
+    prune_before = points[1]
+    for p in points[2:]:
+        if p.time < keep_within_abs:
+            break
+        prune_before = p
+    return prune_before
+
+
+def _prune_point_auto(points: List[DBPoint]) -> Optional[DBPoint]:
+    if not points:
+        return
+    if len(points) == 1:
+        return points[0]
+
+    current_epoch_points = list(_iter_current_epoch_points(points))
+    eligible_points = _iter_alert_eligible_points(current_epoch_points)
+    latest, previous, _ = _report_points(eligible_points)
+
+    if latest and not latest.skipped:
+        return latest
+    elif previous:
+        return previous
+    return current_epoch_points[-1] if current_epoch_points else None
 
 
 def recent(db: DB, count: int = 10) -> Iterator[Point]:
@@ -134,24 +200,30 @@ def _report_points(
     return (latest, previous, generation_status)
 
 
-def _iter_alert_eligible_points(
-    all_points: Sequence[DBPoint], head_generation: Optional[int] = None
-) -> Iterator[Tuple[DBPoint, GenerationMatchStatus]]:
+def _iter_current_epoch_points(all_points: Sequence[DBPoint]) -> Iterator[DBPoint]:
     active_epoch = None
+    for i, p in enumerate(all_points):
+        if i == 0:
+            active_epoch = p.epoch
+        if p.epoch != active_epoch:
+            break
+        yield p
+
+
+def _iter_alert_eligible_points(
+    all_points: Sequence[DBPoint], head_generation: Optional[int] = None, check_epoch: bool = True
+) -> Iterator[Tuple[DBPoint, GenerationMatchStatus]]:
     generation_status = (
         GenerationMatchStatus.NONE_SPECIFIED
         if head_generation is None
         else GenerationMatchStatus.NONE_MATCHED
     )
-    for i, p in enumerate(all_points):
+    for i, p in enumerate(_iter_current_epoch_points(all_points)):
         if i == 0:
             if head_generation is not None and p.generation == head_generation:
                 generation_status = GenerationMatchStatus.MATCHED
-            active_epoch = p.epoch
             yield p, generation_status
             continue
         if p.skipped:
             continue
-        if p.epoch != active_epoch:
-            break
         yield p, generation_status

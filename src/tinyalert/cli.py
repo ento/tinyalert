@@ -1,12 +1,15 @@
 import json
 import sys
 from pathlib import Path
+from datetime import timedelta
 from typing import Any, Dict, List, Optional
 
 import click
+import pytimeparse2
 import tomli
 
 from . import api, db
+from .cli_helpers import Duration
 from .reporters import DiffReporter, ListReporter, StatusReporter, TableReporter
 from .types import Config
 
@@ -300,11 +303,15 @@ def report(ctx, generation, output_format, mute):
 
 
 @cli.command()
-@click.option("--keep-last", type=int, required=False, help="Keep the specified number of points for each metric")
+@click.option("--keep-last", type=click.IntRange(min=1), required=False, help="Keep the specified number of points for each metric")
+@click.option("--keep-within", type=Duration(), required=False, help="Keep points recorded within the specified duration of the latest point for each metric")
+@click.option("--keep-auto", is_flag=True, help="Keep points since the last non-skipped point")
 @click.pass_context
-def prune(ctx, keep_last):
-    count = api.prune(ctx.obj, keep=keep_last)
-    click.echo(f"Pruned {count} points in total", err=True)
+def prune(ctx, keep_last, keep_within, keep_auto):
+    if keep_last is None and keep_within is None and not keep_auto:
+        raise click.UsageError("Must specify at least one of --keep-last, --keep-within or --keep-auto")
+    count = api.prune(ctx.obj, keep_last=keep_last, keep_within=keep_within, keep_auto=keep_auto)
+    click.echo(f"Pruned {count} points in total")
 
 
 @cli.command(
