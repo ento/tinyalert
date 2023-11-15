@@ -71,7 +71,7 @@ runs:
       if: ${{ inputs.install == 'true' }}
     - name: measure
       run: |
-        ${{ steps.py.outputs.python-path }} "${{ github.action_path }}dist/app.pex" "${{ inputs.db-path }}" measure --config "${{ inputs.config-path }}" --metrics "${{ inputs.measure }}"
+        ${{ steps.py.outputs.python-path }} "${{ github.action_path }}dist/app.pex" --db "${{ inputs.db-path }}" measure --config "${{ inputs.config-path }}" --metrics "${{ inputs.measure }}"
       shell: bash
       if: ${{ inputs.measure }}
     - name: report
@@ -86,6 +86,7 @@ runs:
           proc = subprocess.run([
               "${{ steps.py.outputs.python-path }}",
               script_path,
+              "--db",
               os.environ["DB_PATH"],
               "report",
               "--format",
@@ -107,6 +108,6 @@ runs:
       if: ${{ inputs.report == 'true' }}
     - name: prune
       run: |
-        ${{ steps.py.outputs.python-path }} "${{ github.action_path }}dist/app.pex" "${{ inputs.db-path }}" prune --keep "${{ inputs.prune }}"
+        ${{ steps.py.outputs.python-path }} "${{ github.action_path }}dist/app.pex" --db "${{ inputs.db-path }}" prune --keep "${{ inputs.prune }}"
       shell: bash
       if: ${{ inputs.prune }}
