@@ -1,0 +1,13 @@
+points = """
+metric_name, value, skipped
+errors,          1,   false
+errors,          2,   false
+warnings,        3,   false
+warnings,        4,   true
+"""
+args.keep_last = 1
+result.return_value = 2
+result.recent_values = [
+  4,
+  2,
+]
