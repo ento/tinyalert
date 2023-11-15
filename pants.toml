@@ -38,3 +38,8 @@ extra_env_vars = [
   # FIXME https://github.com/pantsbuild/pants/issues/11622, see tests/conftest.py and scripts/pants-with-snapshot-sandbox.sh
   "PANTS_WITH_SNAPSHOTS_HACK_DIR",
 ]
+use_coverage = true
+
+[coverage-py]
+report = ["console", "html"]
+filter = ["src/tinyalert"]
