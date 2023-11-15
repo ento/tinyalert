@@ -42,7 +42,7 @@ def write_config(temp_dir):
 
 
 def read_recents(runner, db_path):
-    recent_result = runner.invoke(cli, [db_path, "recent", "--json"])
+    recent_result = runner.invoke(cli, ["--db", db_path, "recent", "--json"])
     assert recent_result.exit_code == 0, recent_result
 
     return [json.loads(line) for line in recent_result.stdout.split("\n") if line]
@@ -55,6 +55,7 @@ def test_push(runner, temp_dir):
     result = runner.invoke(
         cli,
         [
+            "--db",
             "db.sqlite",
             "push",
             "errors",
@@ -76,6 +77,8 @@ def test_push(runner, temp_dir):
             "url",
             "--epoch",
             "1",
+            "--generation",
+            "100",
         ],
         catch_exceptions=False,
     )
@@ -92,6 +95,40 @@ def test_push(runner, temp_dir):
     assert recents[0]["diffable_content"] == "diffable"
     assert recents[0]["url"] == "url"
     assert recents[0]["epoch"] == 1
+    assert recents[0]["generation"] == 100
+
+
+def test_push_tags(runner, temp_dir):
+    result = runner.invoke(
+        cli,
+        [
+            "--db",
+            "db.sqlite",
+            "push",
+            "errors",
+            "--value",
+            1,
+            "--tag",
+            "foo",
+            "1",
+            "--tag",
+            "bar",
+            "a",
+            "--tagjson",
+            "baz",
+            '"qux"',
+            "--tagjson",
+            "xyz",
+            "2",
+        ],
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 0, result.stdout + "\n" + result.stderr
+
+    recents = read_recents(runner, "db.sqlite")
+    assert recents[0]["metric_name"] == "errors"
+    assert recents[0]["metric_value"] == 1
+    assert recents[0]["tags"] == {"foo": "1", "bar": "a", "baz": "qux", "xyz": 2}
 
 
 # measure
@@ -124,10 +161,13 @@ def test_measure(runner, temp_dir, write_config, metrics_to_measure, expected):
     result = runner.invoke(
         cli,
         [
+            "--db",
             "db.sqlite",
             "measure",
             "--metrics",
             metrics_to_measure,
+            "-n",
+            "100",
             "--config",
             config_path,
         ],
@@ -141,6 +181,7 @@ def test_measure(runner, temp_dir, write_config, metrics_to_measure, expected):
     for p in recents:
         assert p["metric_value"] == expected[p["metric_name"]]
         assert p["epoch"] == expected_epochs[p["metric_name"]]
+        assert p["generation"] == 100
 
 
 @pytest.mark.parametrize(
@@ -171,6 +212,7 @@ def test_measure_diffable_content(
     result = runner.invoke(
         cli,
         [
+            "--db",
             "db.sqlite",
             "measure",
             "--metrics",
@@ -187,6 +229,50 @@ def test_measure_diffable_content(
     assert recents[0]["diffable_content"] == expected_content
 
 
+def test_measure_tags(runner, temp_dir, write_config):
+    config_path = write_config(
+        [
+            MetricConfig(
+                name="foo",
+                measure_source="foo.txt",
+                measure_type="file-lines",
+            ),
+        ]
+    )
+    temp_dir.joinpath("foo.txt").write_text("foo")
+
+    result = runner.invoke(
+        cli,
+        [
+            "--db",
+            "db.sqlite",
+            "measure",
+            "--metrics",
+            "foo",
+            "--config",
+            config_path,
+            "--tag",
+            "foo",
+            "1",
+            "--tag",
+            "bar",
+            "a",
+            "--tagjson",
+            "baz",
+            '"qux"',
+            "--tagjson",
+            "xyz",
+            "2",
+        ],
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 0, result
+
+    recents = read_recents(runner, "db.sqlite")
+    assert len(recents) == 1
+    assert recents[0]["tags"] == {"foo": "1", "bar": "a", "baz": "qux", "xyz": 2}
+
+
 def test_measure_non_existent_metric(runner, temp_dir, write_config):
     config_path = write_config(
         [
@@ -196,7 +282,15 @@ def test_measure_non_existent_metric(runner, temp_dir, write_config):
 
     result = runner.invoke(
         cli,
-        ["db.sqlite", "measure", "--metrics", "foo,bar", "--config", config_path],
+        [
+            "--db",
+            "db.sqlite",
+            "measure",
+            "--metrics",
+            "foo,bar",
+            "--config",
+            config_path,
+        ],
         catch_exceptions=False,
     )
     assert result.exit_code == 1, result
@@ -213,7 +307,7 @@ def test_combine_works(runner, create_db):
     api.push(src, "coverage", value=4)
 
     result = runner.invoke(
-        cli, [str(dest.db_path), "combine", "src/*.db"], catch_exceptions=False
+        cli, ["--db", str(dest.db_path), "combine", "src/*.db"], catch_exceptions=False
     )
     assert result.exit_code == 0, result.output
 
@@ -228,7 +322,7 @@ def test_combine_works_against_empty_db(runner, create_db):
     api.push(src2, "coverage", value=4)
 
     result = runner.invoke(
-        cli, ["db.sqlite", "combine", str(src.db_path), str(src2.db_path)]
+        cli, ["--db", "db.sqlite", "combine", str(src.db_path), str(src2.db_path)]
     )
     assert result.exit_code == 0, result
 
@@ -241,7 +335,7 @@ def test_recent_works(runner, db):
     api.push(db, "coverage", value=4)
 
     recent_result = runner.invoke(
-        cli, [str(db.db_path), "recent", "--json"], catch_exceptions=False
+        cli, ["--db", str(db.db_path), "recent", "--json"], catch_exceptions=False
     )
     assert recent_result.exit_code == 0, recent_result
 
@@ -257,7 +351,9 @@ def test_recent_works(runner, db):
 
 def test_report_returns_ok_when_empty_db(runner, db):
     json_result = runner.invoke(
-        cli, [str(db.db_path), "report", "--format", "json"], catch_exceptions=False
+        cli,
+        ["--db", str(db.db_path), "report", "--format", "json"],
+        catch_exceptions=False,
     )
     assert json_result.exit_code == 0, json_result
     report = json.loads(json_result.stdout)
@@ -270,12 +366,16 @@ def test_report_returns_ok_when_empty_db(runner, db):
 def test_report_exits_with_error_when_latest_value_violates_threshold(runner, db):
     api.push(db, "errors", value=10, absolute_max=0, diffable_content="foo")
 
-    result = runner.invoke(cli, [str(db.db_path), "report"], catch_exceptions=False)
+    result = runner.invoke(
+        cli, ["--db", str(db.db_path), "report"], catch_exceptions=False
+    )
 
     assert result.exit_code == 1, result.stdout + "\n" + result.stderr
 
     json_result = runner.invoke(
-        cli, [str(db.db_path), "report", "--format", "json"], catch_exceptions=False
+        cli,
+        ["--db", str(db.db_path), "report", "--format", "json"],
+        catch_exceptions=False,
     )
 
     assert json_result.exit_code == 1, json_result
@@ -286,18 +386,43 @@ def test_report_exits_with_error_when_latest_value_violates_threshold(runner, db
     assert report["status"] == "alarm"
 
 
+def test_report_returns_ok_when_non_current_generation_violates_threshold(runner, db):
+    api.push(
+        db, "errors", value=10, absolute_max=0, diffable_content="foo", generation=1
+    )
+
+    result = runner.invoke(
+        cli, ["--db", str(db.db_path), "report"], catch_exceptions=False
+    )
+
+    assert result.exit_code == 1, result.stdout + "\n" + result.stderr
+
+    json_result = runner.invoke(
+        cli,
+        ["--db", str(db.db_path), "report", "--generation", "2", "--format", "json"],
+        catch_exceptions=False,
+    )
+
+    assert json_result.exit_code == 0, json_result.output
+    report = json.loads(json_result.stdout)
+    assert report["table"]
+    assert not report["list"]
+    assert not report["diff"]
+    assert report["status"] == "ok"
+
+
 def test_report_doesnt_alert_when_muted(runner, db):
     api.push(db, "errors", value=10, absolute_max=0)
 
     result = runner.invoke(
-        cli, [str(db.db_path), "report", "--mute"], catch_exceptions=False
+        cli, ["--db", str(db.db_path), "report", "--mute"], catch_exceptions=False
     )
 
     assert result.exit_code == 0, result.output
 
     json_result = runner.invoke(
         cli,
-        [str(db.db_path), "report", "--mute", "--format", "json"],
+        ["--db", str(db.db_path), "report", "--mute", "--format", "json"],
         catch_exceptions=False,
     )
 
@@ -312,12 +437,14 @@ def test_report_doesnt_alert_when_muted(runner, db):
 def test_report_with_previous_no_alert_skips_previous_value(runner, db):
     api.push(db, "errors", value=10, absolute_max=0)
     no_alert_result = runner.invoke(
-        cli, [str(db.db_path), "report", "--mute"], catch_exceptions=False
+        cli, ["--db", str(db.db_path), "report", "--mute"], catch_exceptions=False
     )
     assert no_alert_result.exit_code == 0, no_alert_result.output
     api.push(db, "errors", value=20, relative_max=0)
 
-    result = runner.invoke(cli, [str(db.db_path), "report"], catch_exceptions=False)
+    result = runner.invoke(
+        cli, ["--db", str(db.db_path), "report"], catch_exceptions=False
+    )
 
     assert result.exit_code == 0, result.output + "\n" + result.output
 
@@ -326,7 +453,9 @@ def test_report_with_new_epoch_doesnt_alert(runner, db):
     api.push(db, "errors", value=10, absolute_max=0)
     api.push(db, "errors", value=20, relative_max=0, epoch=1)
 
-    result = runner.invoke(cli, [str(db.db_path), "report"], catch_exceptions=False)
+    result = runner.invoke(
+        cli, ["--db", str(db.db_path), "report"], catch_exceptions=False
+    )
 
     assert result.exit_code == 0, result.output + "\n" + result.output
 
@@ -340,7 +469,7 @@ def test_prune_keeps_specified_number_of_points(runner, db):
     api.push(db, "coverage", value=7)
 
     result = runner.invoke(
-        cli, [str(db.db_path), "prune", "--keep", 1], catch_exceptions=False
+        cli, ["--db", str(db.db_path), "prune", "--keep", 1], catch_exceptions=False
     )
     assert result.exit_code == 0, result.output
 
@@ -356,6 +485,6 @@ def test_prune_keeps_specified_number_of_points(runner, db):
 
 def test_migrate_command(runner):
     result = runner.invoke(
-        cli, ["db.sqlite", "migrate", "upgrade", "head"], catch_exceptions=False
+        cli, ["--db", "db.sqlite", "migrate", "upgrade", "head"], catch_exceptions=False
     )
-    assert result.exit_code == 0, result.output
+    assert result.exit_code == 0, result.output + result.stderr

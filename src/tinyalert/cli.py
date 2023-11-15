@@ -1,7 +1,7 @@
 import json
 import sys
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import click
 import tomli
@@ -10,9 +10,25 @@ from . import api, db
 from .reporters import DiffReporter, ListReporter, StatusReporter, TableReporter
 from .types import Config
 
+ENVVAR_PREFIX = "TINYALERT_"
+
+
+class JSONType(click.ParamType):
+    name = "json"
+
+    def convert(self, value, param, ctx):
+        return json.loads(value)
+
 
 @click.group()
-@click.argument("db_path", type=click.Path(exists=False), envvar="TINYALERT_DB")
+@click.option(
+    "--db",
+    "db_path",
+    required=True,
+    default="tinyalert.sqlite",
+    type=click.Path(exists=False),
+    show_default=True,
+)
 @click.pass_context
 def cli(ctx, db_path):
     ctx.obj = db.DB(db_path)
@@ -29,8 +45,40 @@ def cli(ctx, db_path):
 @click.option(
     "--diffable", default=None, help="Text content suitable for showing diffs"
 )
-@click.option("--url", default=None, help="URL")
-@click.option("--epoch", type=int, default=0, help="Epoch number")
+@click.option("--url", default=None, help="URL", envvar=ENVVAR_PREFIX + "URL")
+@click.option(
+    "--epoch",
+    type=int,
+    default=0,
+    help="Epoch number",
+    envvar=ENVVAR_PREFIX + "EPOCH",
+    show_default=True,
+)
+@click.option(
+    "-n",
+    "--generation",
+    type=int,
+    default=0,
+    help="Generation number",
+    envvar=ENVVAR_PREFIX + "GENERATION",
+    show_default=True,
+)
+@click.option(
+    "--tag",
+    "tags",
+    type=(str, str),
+    multiple=True,
+    help="Key-value pair to store as a tag. Value is stored as a string",
+    envvar=ENVVAR_PREFIX + "TAGS",
+)
+@click.option(
+    "--tagjson",
+    "json_tags",
+    type=(str, JSONType()),
+    multiple=True,
+    help="Key-value pair to store as a tag. Value is evaluated as JSON",
+    envvar=ENVVAR_PREFIX + "JSON_TAGS",
+)
 @click.pass_context
 def push(
     ctx,
@@ -44,13 +92,12 @@ def push(
     diffable,
     url,
     epoch,
+    generation,
+    tags,
+    json_tags,
 ):
     if value is None:
         value = float(sys.stdin.read().strip())
-
-    if not value:
-        click.echo("No value provided")
-        ctx.exit(1)
 
     api.push(
         db=ctx.obj,
@@ -64,6 +111,8 @@ def push(
         diffable_content=diffable,
         url=url,
         epoch=epoch,
+        generation=generation,
+        tags=dict(tags + json_tags),
     )
 
 
@@ -80,6 +129,7 @@ def split_values(ctx, param, value):
     "config_path",
     type=click.Path(exists=True, path_type=Path),
     default="tinyalert.toml",
+    show_default=True,
 )
 @click.option(
     "--metrics",
@@ -87,13 +137,41 @@ def split_values(ctx, param, value):
     callback=split_values,
     help="Comma-separated names of metrics to measure",
 )
-@click.option("--url", default=None, help="URL")
+@click.option(
+    "-n",
+    "--generation",
+    type=int,
+    default=0,
+    help="Generation number",
+    envvar=ENVVAR_PREFIX + "GENERATION",
+    show_default=True,
+)
+@click.option("--url", default=None, help="URL", envvar=ENVVAR_PREFIX + "URL")
+@click.option(
+    "--tag",
+    "tags",
+    type=(str, str),
+    multiple=True,
+    help="Key-value pair to store as a tag. Value is stored as a string",
+    envvar=ENVVAR_PREFIX + "TAGS",
+)
+@click.option(
+    "--tagjson",
+    "json_tags",
+    type=(str, JSONType()),
+    multiple=True,
+    help="Key-value pair to store as a tag. Value is evaluated as JSON",
+    envvar=ENVVAR_PREFIX + "JSON_TAGS",
+)
 @click.pass_context
 def measure(
     ctx: click.Context,
     config_path: Path,
     metrics: Optional[List[str]],
+    generation: int,
     url: Optional[str],
+    tags: list[tuple[str, str]],
+    json_tags: list[tuple[str, Any]],
 ):
     raw = tomli.loads(Path(config_path).read_text())
     config = Config.model_validate(raw)
@@ -129,6 +207,8 @@ def measure(
             diffable_content=diffable_content,
             url=url,
             epoch=metric.epoch,
+            generation=generation,
+            tags=dict(tags + json_tags),
         )
 
 
@@ -156,25 +236,34 @@ def recent(ctx, output_format):
 
 
 @cli.command()
+@click.option(
+    "-n",
+    "--generation",
+    type=int,
+    default=None,
+    help="Only report on metrics with latest point that matches this generation",
+    envvar=ENVVAR_PREFIX + "GENERATION",
+)
 @click.option("--format", "output_format", default=None)
 @click.option(
     "--mute/--no-mute",
     default=False,
     help="If muted, don't exit with an error. Marks latest data points as skipped if they violate a threshold.",
+    show_default=True,
 )
 @click.pass_context
-def report(ctx, output_format, mute):
-    reports = []
+def report(ctx, generation, output_format, mute):
+    reports = {}
     list_reporter = ListReporter()
     table_reporter = TableReporter()
     diff_reporter = DiffReporter()
     status_reporter = StatusReporter()
 
     for metric_name in ctx.obj.iter_metric_names():
-        report_data = api.gather_report_data(ctx.obj, metric_name)
+        report_data = api.gather_report_data(ctx.obj, metric_name, generation)
         if mute and report_data.violates_limits:
             api.skip_latest(ctx.obj, metric_name)
-        reports.append(report_data)
+        reports[metric_name] = report_data
         table_reporter.add(report_data)
         list_reporter.add(report_data)
         diff_reporter.add(report_data)
@@ -189,7 +278,10 @@ def report(ctx, output_format, mute):
         if has_violation and not mute:
             status = "alarm"
         output = {
-            "reports": [report.model_dump(mode="json") for report in reports],
+            "reports": {
+                metric_name: report.model_dump(mode="json")
+                for metric_name, report in reports.items()
+            },
             "table": table_reporter.get_value(),
             "list": list_reporter.get_value(),
             "diff": diff_reporter.get_value(),

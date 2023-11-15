@@ -1,7 +1,7 @@
 import pytest
 
 from tinyalert import api
-from tinyalert.types import MeasureType
+from tinyalert.types import GenerationMatchStatus, MeasureType
 
 
 def test_push_with_all_fields(db):
@@ -17,6 +17,8 @@ def test_push_with_all_fields(db):
         diffable_content="diff",
         url="test",
         epoch=1,
+        generation=100,
+        tags={"foo": 1},
     )
     assert p.metric_value == 1
     assert p.absolute_max == 2
@@ -27,6 +29,8 @@ def test_push_with_all_fields(db):
     assert p.diffable_content == "diff"
     assert p.url == "test"
     assert p.epoch == 1
+    assert p.generation == 100
+    assert p.tags == {"foo": 1}
 
 
 @pytest.mark.parametrize(
@@ -118,6 +122,7 @@ def test_recent(db):
         measure_source="content",
         diffable_content="diff",
         url="url",
+        tags={"foo": "bar"},
     )
     api.push(db, "warnings", value=10, epoch=1)
 
@@ -134,6 +139,7 @@ def test_recent(db):
     assert points[0].diffable_content is None
     assert points[0].url is None
     assert points[0].epoch == 1
+    assert points[0].tags == {}
 
     points = list(db.recent(count=3))
 
@@ -148,6 +154,7 @@ def test_recent(db):
     assert points[0].diffable_content is None
     assert points[0].url is None
     assert points[0].epoch == 1
+    assert points[0].tags == {}
     assert points[1].metric_name == "errors"
     assert points[1].metric_value == 1
     assert points[1].absolute_max == 10
@@ -158,12 +165,14 @@ def test_recent(db):
     assert points[1].diffable_content == "diff"
     assert points[1].url == "url"
     assert points[1].epoch == 0
+    assert points[1].tags == {"foo": "bar"}
 
 
 def test_gather_report_data_when_no_data(db):
     data = api.gather_report_data(db, "errors")
 
     assert data.metric_name == "errors"
+    assert data.generation_status == GenerationMatchStatus.NONE_SPECIFIED
     assert data.latest_values == []
     assert data.latest_value is None
     assert data.previous_value is None
@@ -173,7 +182,10 @@ def test_gather_report_data_when_no_data(db):
     assert data.relative_min is None
     assert data.latest_diffable_content is None
     assert data.previous_diffable_content is None
-    assert data.url is None
+    assert data.latest_url is None
+    assert data.previous_url is None
+    assert data.latest_tags is None
+    assert data.previous_tags is None
 
 
 def test_gather_report_data_when_single_point(db):
@@ -187,12 +199,14 @@ def test_gather_report_data_when_single_point(db):
         relative_min=3,
         diffable_content="content",
         url="url",
+        tags={"foo": "bar"},
     )
     api.push(db, "warnings", value=10)
 
     data = api.gather_report_data(db, "errors")
 
     assert data.metric_name == "errors"
+    assert data.generation_status == GenerationMatchStatus.NONE_SPECIFIED
     assert data.latest_values == [1]
     assert data.latest_value == 1
     assert data.previous_value is None
@@ -202,7 +216,10 @@ def test_gather_report_data_when_single_point(db):
     assert data.relative_min == 3
     assert data.latest_diffable_content == "content"
     assert data.previous_diffable_content is None
-    assert data.url == "url"
+    assert data.latest_url == "url"
+    assert data.previous_url is None
+    assert data.latest_tags == {"foo": "bar"}
+    assert data.previous_tags is None
 
 
 def test_gather_report_data_when_two_points(db):
@@ -216,12 +233,21 @@ def test_gather_report_data_when_two_points(db):
         relative_min=3,
         diffable_content="previous",
         url="prev_url",
+        tags={"foo": "bar"},
     )
-    api.push(db, "errors", value=2, diffable_content="latest", url="current_url")
+    api.push(
+        db,
+        "errors",
+        value=2,
+        diffable_content="latest",
+        url="current_url",
+        tags={"foo": "baz"},
+    )
 
     data = api.gather_report_data(db, "errors")
 
     assert data.metric_name == "errors"
+    assert data.generation_status == GenerationMatchStatus.NONE_SPECIFIED
     assert data.latest_values == [1.0, 2.0]
     assert data.latest_value == 2
     assert data.previous_value == 1
@@ -231,7 +257,51 @@ def test_gather_report_data_when_two_points(db):
     assert data.relative_min is None
     assert data.latest_diffable_content == "latest"
     assert data.previous_diffable_content == "previous"
-    assert data.url == "current_url"
+    assert data.latest_url == "current_url"
+    assert data.previous_url == "prev_url"
+    assert data.latest_tags == {"foo": "baz"}
+    assert data.previous_tags == {"foo": "bar"}
+
+
+def test_gather_report_data_when_two_points_from_older_generation(db):
+    api.push(
+        db,
+        "errors",
+        value=1,
+        absolute_max=10,
+        absolute_min=0,
+        relative_max=2,
+        relative_min=3,
+        diffable_content="previous",
+        url="prev_url",
+        tags={"foo": "bar"},
+    )
+    api.push(
+        db,
+        "errors",
+        value=2,
+        diffable_content="latest",
+        url="current_url",
+        tags={"foo": "baz"},
+    )
+
+    data = api.gather_report_data(db, "errors", head_generation=1)
+
+    assert data.metric_name == "errors"
+    assert data.generation_status == GenerationMatchStatus.NONE_MATCHED
+    assert data.latest_values == [1.0, 2.0]
+    assert data.latest_value == 2.0
+    assert data.previous_value == 1.0
+    assert data.absolute_max is None
+    assert data.absolute_min is None
+    assert data.relative_max is None
+    assert data.relative_min is None
+    assert data.latest_diffable_content == "latest"
+    assert data.previous_diffable_content == "previous"
+    assert data.latest_url == "current_url"
+    assert data.previous_url == "prev_url"
+    assert data.latest_tags == {"foo": "baz"}
+    assert data.previous_tags == {"foo": "bar"}
 
 
 def test_gather_report_data_dont_alert_on_skipped_data(db):
@@ -246,6 +316,7 @@ def test_gather_report_data_dont_alert_on_skipped_data(db):
     data = api.gather_report_data(db, "errors")
 
     assert data.metric_name == "errors"
+    assert data.generation_status == GenerationMatchStatus.NONE_SPECIFIED
     assert data.latest_values == [1.0, 2.0, 3.0, 4.0]
     assert data.latest_value == 4
     assert data.previous_value == 2
@@ -258,6 +329,7 @@ def test_gather_report_data_dont_alert_on_different_epoch(db):
     data = api.gather_report_data(db, "errors")
 
     assert data.metric_name == "errors"
+    assert data.generation_status == GenerationMatchStatus.NONE_SPECIFIED
     assert data.latest_values == [1.0, 2.0]
     assert data.latest_value == 2
     assert data.previous_value is None

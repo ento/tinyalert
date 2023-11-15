@@ -1,22 +1,21 @@
 import difflib
 import textwrap
 
-from sparklines import sparklines
 from tabulate import tabulate
 from termcolor import colored
 
-from .types import MetricDiff, ReportData
+from .types import GenerationMatchStatus, MetricDiff, ReportData
 
 
 class TableReporter:
     header = dict(
+        status_character="",
         metric_name="Name",
         latest_value="Value",
         abs_limits="Thresholds",
         change="Change",
         rel_limits="Thresholds",
-        trend="Trend",
-        details="Details",
+        source="Source",
     )
 
     def __init__(self):
@@ -27,13 +26,13 @@ class TableReporter:
 
     def _make_row(self, report_data: ReportData) -> dict:
         row = dict(
+            status_character=report_data.status_character,
             metric_name=report_data.metric_name,
             latest_value="-",
             abs_limits="-",
             change="-",
             rel_limits="-",
-            trend="",
-            details="",
+            source="",
         )
 
         if report_data.latest_value is not None:
@@ -45,7 +44,10 @@ class TableReporter:
             )
             row["latest_value"] = colored_value_string
 
-        if report_data.previous_value is not None:
+        if (
+            report_data.previous_value is not None
+            and report_data.generation_status != GenerationMatchStatus.NONE_MATCHED
+        ):
             change_string = f"{report_data.latest_change:+g}"
             colored_change_string = (
                 (colored(change_string, "yellow") + " [!]")
@@ -74,21 +76,30 @@ class TableReporter:
                 rel_thresholds.append(f"Δ<={report_data.relative_max}")
             row["rel_limits"] = ", ".join(rel_thresholds)
 
-        if report_data.latest_values:
-            row["trend"] = sparklines(report_data.latest_values)[0]
-
-        if report_data.url:
-            row["details"] = f"[Details]({report_data.url})"
+        sources = []
+        if (
+            report_data.previous_url
+            and report_data.generation_status != GenerationMatchStatus.NONE_MATCHED
+        ):
+            sources.append(f"[baseline]({report_data.previous_url})")
+        if report_data.latest_url:
+            title = (
+                "baseline"
+                if report_data.generation_status == GenerationMatchStatus.NONE_MATCHED
+                else "latest"
+            )
+            sources.append(f"[{title}]({report_data.latest_url})")
+        row["source"] = " \| ".join(sources)
 
         return row
 
     def get_value(self) -> str:
         header = dict(self.header)
         rows = [dict(row) for row in self.rows]
-        if not any(row["details"] for row in rows):
-            del header["details"]
+        if not any(row["source"] for row in rows):
+            del header["source"]
             for row in rows:
-                del row["details"]
+                del row["source"]
         return tabulate(rows, header, tablefmt="github")
 
 
