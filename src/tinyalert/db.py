@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Generator, Optional, Union
 
 import alembic.config
-from sqlalchemy import create_engine, delete, select, update, text
+from sqlalchemy import create_engine, delete, select, text, update
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 from sqlalchemy.types import JSON, TEXT, String
 
@@ -108,7 +108,10 @@ class DB:
         count = 0
         with self.session() as session:
             count = session.execute(
-                delete(Point).where(Point.metric_name == point.metric_name).where(Point.id < point.id)).rowcount
+                delete(Point)
+                .where(Point.metric_name == point.metric_name)
+                .where(Point.id < point.id)
+            ).rowcount
             session.commit()
         return count
 

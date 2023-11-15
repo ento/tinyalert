@@ -1,8 +1,8 @@
+from datetime import timedelta
 from typing import Optional
 
 import click
 import pytimeparse2
-from datetime import timedelta
 
 
 class Duration(click.ParamType):

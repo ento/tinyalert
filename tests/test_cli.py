@@ -1,8 +1,8 @@
 import json
 from datetime import timedelta
 from pathlib import Path
-from unittest.mock import MagicMock
 from typing import List
+from unittest.mock import MagicMock
 
 import pytest
 import tomli_w
@@ -478,7 +478,18 @@ def test_prune_calls_api_with_expected_args(monkeypatch, runner, db):
     mock_prune.return_value = 3
     monkeypatch.setattr(api, "prune", mock_prune)
     result = runner.invoke(
-        cli, ["--db", str(db.db_path), "prune", "--keep-last", "1", "--keep-within", "7d", "--keep-auto"], catch_exceptions=False
+        cli,
+        [
+            "--db",
+            str(db.db_path),
+            "prune",
+            "--keep-last",
+            "1",
+            "--keep-within",
+            "7d",
+            "--keep-auto",
+        ],
+        catch_exceptions=False,
     )
     assert result.exit_code == 0, result.stdout + "\n" + result.stderr
 

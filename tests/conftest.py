@@ -1,8 +1,7 @@
-import os
 import datetime
+import os
 from csv import DictReader
 from io import StringIO
-from pathlib import Path
 
 import pytest
 from syrupy import PyTestLocation
@@ -81,4 +80,5 @@ def db_from_csv(freezer, create_db):
             api.push(db, **row)
             freezer.tick(delta=datetime.timedelta(days=1))
         return db
+
     return inner

@@ -1,7 +1,8 @@
-import pytest
-import tomli
 from datetime import timedelta
 from pathlib import Path
+
+import pytest
+import tomli
 
 from tinyalert import api
 from tinyalert.cli_helpers import Duration
@@ -102,11 +103,20 @@ def test_combine_with_minimum_data(db, create_db, freezer):
 
 
 def test_prune_with_empty_db(db):
-    assert api.prune(db, keep_last=0, keep_within=timedelta(seconds=0), keep_auto=True) == 0
-    assert api.prune(db, keep_last=1, keep_within=timedelta(seconds=1), keep_auto=True) == 0
+    assert (
+        api.prune(db, keep_last=0, keep_within=timedelta(seconds=0), keep_auto=True)
+        == 0
+    )
+    assert (
+        api.prune(db, keep_last=1, keep_within=timedelta(seconds=1), keep_auto=True)
+        == 0
+    )
 
 
-@pytest.mark.parametrize("fixture_path", list(Path(__file__).parent.joinpath("__fixtures__").glob("api_prune_*.toml")))
+@pytest.mark.parametrize(
+    "fixture_path",
+    list(Path(__file__).parent.joinpath("__fixtures__").glob("api_prune_*.toml")),
+)
 def test_prune_with_fixtures(db_from_csv, fixture_path):
     testcase = tomli.loads(fixture_path.read_text())
     db = db_from_csv(testcase["points"])

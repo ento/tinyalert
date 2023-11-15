@@ -4,7 +4,8 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
 
-from .db import DB, Point as DBPoint
+from .db import DB
+from .db import Point as DBPoint
 from .types import (
     EvalType,
     GenerationMatchStatus,
@@ -82,24 +83,33 @@ def combine(dest_db: DB, src_dbs: List[DB]):
             dest_db.add(Point.model_validate(p))
 
 
-def prune(db: DB, keep_last: Optional[int] = None, keep_within: Optional[datetime.timedelta] = None, keep_auto: bool = False) -> int:
+def prune(
+    db: DB,
+    keep_last: Optional[int] = None,
+    keep_within: Optional[datetime.timedelta] = None,
+    keep_auto: bool = False,
+) -> int:
     total_pruned = 0
     for metric_name in db.iter_metric_names():
         points = list(db.recent(metric_name, count=None))
 
         auto_prune_before = _prune_point_auto(points)
-        prune_candidates = list(filter(None, (
-            _prune_point_last(points, keep_last),
-            _prune_point_within(points, auto_prune_before, keep_within),
-            auto_prune_before if keep_auto else None,
-        )))
+        prune_candidates = list(
+            filter(
+                None,
+                (
+                    _prune_point_last(points, keep_last),
+                    _prune_point_within(points, auto_prune_before, keep_within),
+                    auto_prune_before if keep_auto else None,
+                ),
+            )
+        )
 
         if not prune_candidates:
             continue
 
         # Take the oldest point
         prune_before = sorted(prune_candidates, key=lambda p: (p.time, p.id))[0]
-        print(f"Prune candidates", [p.metric_value for p in prune_candidates], "before", prune_before.metric_value)
         total_pruned += db.prune_before(prune_before)
 
     if total_pruned > 0:
@@ -108,7 +118,9 @@ def prune(db: DB, keep_last: Optional[int] = None, keep_within: Optional[datetim
     return total_pruned
 
 
-def _prune_point_last(points: List[DBPoint], keep_last: Optional[int]) -> Optional[DBPoint]:
+def _prune_point_last(
+    points: List[DBPoint], keep_last: Optional[int]
+) -> Optional[DBPoint]:
     assert keep_last is None or keep_last > 0
     if not points:
         return
@@ -119,7 +131,11 @@ def _prune_point_last(points: List[DBPoint], keep_last: Optional[int]) -> Option
     return points[keep_last - 1]
 
 
-def _prune_point_within(points: List[DBPoint], auto_prune_before: Optional[DBPoint], keep_within: Optional[datetime.timedelta]) -> Optional[DBPoint]:
+def _prune_point_within(
+    points: List[DBPoint],
+    auto_prune_before: Optional[DBPoint],
+    keep_within: Optional[datetime.timedelta],
+) -> Optional[DBPoint]:
     assert keep_within is None or keep_within.total_seconds() > 0
     assert points
     if keep_within is None:
@@ -211,7 +227,9 @@ def _iter_current_epoch_points(all_points: Sequence[DBPoint]) -> Iterator[DBPoin
 
 
 def _iter_alert_eligible_points(
-    all_points: Sequence[DBPoint], head_generation: Optional[int] = None, check_epoch: bool = True
+    all_points: Sequence[DBPoint],
+    head_generation: Optional[int] = None,
+    check_epoch: bool = True,
 ) -> Iterator[Tuple[DBPoint, GenerationMatchStatus]]:
     generation_status = (
         GenerationMatchStatus.NONE_SPECIFIED
