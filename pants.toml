@@ -1,5 +1,5 @@
 [GLOBAL]
-pants_version = "2.15.0"
+pants_version = "2.18.0"
 backend_packages = [
   "pants.backend.python",
   "pants.backend.python.lint.black",
@@ -12,26 +12,35 @@ enabled = true
 repo_id = "9a0568c1-c694-43f2-a9f9-b20efbb65174"
 
 [pex-cli]
-version = "v2.1.115"
+version = "v2.1.153"
 url_template = "https://github.com/ento/pex/releases/download/{version}/pex"
 known_versions = [
   "v2.1.115|linux_x86_64|26da5510ef063e62945bc24ecc68833e8de1035dc5e70d8edd1c2931ae539eae|4098477",
+  "v2.1.153|linux_x86_64|8055f1208a97ce12d40ce1f5ca79c5ecc0a6ed89eeaab9d28839ff6a2c997d86|4205255",
 ]
 
 [python]
 interpreter_constraints = [">=3.8.1,<4"]
 enable_resolves = true
 
+[python.resolves]
+python-default = "3rdparty/python/default.lock"
+black = "3rdparty/python/black.lock"
+flake8 = "3rdparty/python/flake8.lock"
+pytest = "3rdparty/python/pytest.lock"
+
 [python-bootstrap]
 # Limit to Python interpreter installed by flake.nix
 search_path = ["%(env.PYTHON_SEARCH_PATH)s"]
 
+[black]
+install_from_resolve = "black"
+
+[flake8]
+install_from_resolve = "flake8"
+
 [pytest]
-lockfile = "3rdparty/python/pytest.lock"
-extra_requirements.add = [
-  "pytest-freezer",
-  "syrupy",
-]
+install_from_resolve = "pytest"
 
 [test]
 extra_env_vars = [
