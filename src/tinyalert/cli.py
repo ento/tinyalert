@@ -249,7 +249,10 @@ def recent(ctx, output_format):
 @click.option(
     "--mute/--no-mute",
     default=False,
-    help="If muted, don't exit with an error. Marks latest data points as skipped if they violate a threshold.",
+    help=(
+        "If muted, don't exit with an error. "
+        "Marks latest data points as skipped if they violate a threshold."
+    ),
     show_default=True,
 )
 @click.pass_context
@@ -311,10 +314,19 @@ def report(ctx, generation, output_format, mute):
     "--keep-within",
     type=Duration(),
     required=False,
-    help="For each metric, keep points recorded within the specified duration leading up to the points that would be kept by --keep-auto",
+    help=(
+        "For each metric, keep points recorded within the specified duration "
+        "leading up to the points that would be kept by --keep-auto"
+    ),
 )
 @click.option(
-    "--keep-auto", is_flag=True, help="Keep points since the last non-skipped point within the current epoch. All points in the epoch are kept if there's no non-skipped point. Previous epoch gets pruned"
+    "--keep-auto",
+    is_flag=True,
+    help=(
+        "Keep points since the last non-skipped point within the current epoch. "
+        "All points in the epoch are kept if there's no non-skipped point. "
+        "Previous epoch gets pruned"
+    ),
 )
 @click.pass_context
 def prune(ctx, keep_last, keep_within, keep_auto):
