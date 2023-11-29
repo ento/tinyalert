@@ -19,7 +19,7 @@ jobs:
           - "3.10"
           - "3.11"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python_version }}
@@ -33,7 +33,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: init pants
         uses: pantsbuild/actions/init-pants@main
         with:
@@ -44,7 +44,7 @@ jobs:
   install-and-use:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: run action
         uses: ./
         with:
@@ -64,7 +64,7 @@ jobs:
             measure: 'critical'
             expected-outcome: 'alert'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: run action
         uses: ./
         id: act
