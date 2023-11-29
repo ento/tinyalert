@@ -31,7 +31,7 @@ def push(
     skipped: bool = False,
     epoch: int = 0,
     generation: int = 0,
-    tags: Dict[str, Any] = {},
+    tags: Dict[str, Any] = None,
 ) -> Point:
     p = Point(
         metric_name=metric_name,
@@ -47,7 +47,7 @@ def push(
         skipped=skipped,
         epoch=epoch,
         generation=generation,
-        tags=tags,
+        tags=tags or {},
     )
     return db.add(p)
 
