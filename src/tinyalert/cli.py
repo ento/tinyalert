@@ -305,16 +305,16 @@ def report(ctx, generation, output_format, mute):
     "--keep-last",
     type=click.IntRange(min=1),
     required=False,
-    help="Keep the specified number of points for each metric",
+    help="For each metric, keep the specified number of points",
 )
 @click.option(
     "--keep-within",
     type=Duration(),
     required=False,
-    help="Keep points recorded within the specified duration of the latest point for each metric",
+    help="For each metric, keep points recorded within the specified duration leading up to the points that would be kept by --keep-auto",
 )
 @click.option(
-    "--keep-auto", is_flag=True, help="Keep points since the last non-skipped point"
+    "--keep-auto", is_flag=True, help="Keep points since the last non-skipped point within the current epoch. All points in the epoch are kept if there's no non-skipped point. Previous epoch gets pruned"
 )
 @click.pass_context
 def prune(ctx, keep_last, keep_within, keep_auto):
