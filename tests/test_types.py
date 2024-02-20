@@ -210,7 +210,7 @@ def test_report_data_latest_changes(monkeypatch, value, prev, expected):
         (GenerationMatchStatus.MATCHED, 1, 0, "▵"),
     ],
 )
-def test_report_data_latest_changes(monkeypatch, gen_status, value, prev, expected):
+def test_report_data_status_character(monkeypatch, gen_status, value, prev, expected):
     data = ReportData(
         metric_name="test",
         generation_status=gen_status,

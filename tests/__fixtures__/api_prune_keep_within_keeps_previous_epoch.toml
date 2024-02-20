@@ -1,0 +1,14 @@
+points = """
+metric_name, value, skipped, epoch
+errors,          1,   false,     1
+errors,          2,   false,     1
+errors,          3,    true,     2
+errors,          4,    true,     2
+"""
+args.keep_within = "1d"
+result.return_value = 1
+result.recent_values = [
+  4,
+  3,
+  2,
+]

@@ -1,0 +1,7 @@
+points = """
+"""
+args.keep_auto = true
+args.keep_last = 1
+args.keep_within = "1d"
+result.return_value = 0
+result.recent_values = []

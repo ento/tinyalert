@@ -1,12 +1,13 @@
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 
 import click
 import tomli
 
 from . import api, db
+from .cli_helpers import Duration
 from .reporters import DiffReporter, ListReporter, StatusReporter, TableReporter
 from .types import Config
 
@@ -248,7 +249,10 @@ def recent(ctx, output_format):
 @click.option(
     "--mute/--no-mute",
     default=False,
-    help="If muted, don't exit with an error. Marks latest data points as skipped if they violate a threshold.",
+    help=(
+        "If muted, don't exit with an error. "
+        "Marks latest data points as skipped if they violate a threshold."
+    ),
     show_default=True,
 )
 @click.pass_context
@@ -300,11 +304,40 @@ def report(ctx, generation, output_format, mute):
 
 
 @cli.command()
-@click.option("--keep", type=int, required=True, help="How many points to keep")
+@click.option(
+    "--keep-last",
+    type=click.IntRange(min=1),
+    required=False,
+    help="For each metric, keep the specified number of points",
+)
+@click.option(
+    "--keep-within",
+    type=Duration(),
+    required=False,
+    help=(
+        "For each metric, keep points recorded within the specified duration "
+        "leading up to the points that would be kept by --keep-auto"
+    ),
+)
+@click.option(
+    "--keep-auto",
+    is_flag=True,
+    help=(
+        "Keep points since the last non-skipped point within the current epoch. "
+        "All points in the epoch are kept if there's no non-skipped point. "
+        "Previous epoch gets pruned"
+    ),
+)
 @click.pass_context
-def prune(ctx, keep):
-    count = api.prune(ctx.obj, keep=keep)
-    click.echo(f"Pruned {count} points in total", err=True)
+def prune(ctx, keep_last, keep_within, keep_auto):
+    if keep_last is None and keep_within is None and not keep_auto:
+        raise click.UsageError(
+            "Must specify at least one of --keep-last, --keep-within or --keep-auto"
+        )
+    count = api.prune(
+        ctx.obj, keep_last=keep_last, keep_within=keep_within, keep_auto=keep_auto
+    )
+    click.echo(f"Pruned {count} points in total")
 
 
 @cli.command(

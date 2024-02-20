@@ -89,7 +89,7 @@ class TableReporter:
                 else "latest"
             )
             sources.append(f"[{title}]({report_data.latest_url})")
-        row["source"] = " \| ".join(sources)
+        row["source"] = r" \| ".join(sources)
 
         return row
 

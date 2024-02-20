@@ -1,6 +1,8 @@
 import json
+from datetime import timedelta
 from pathlib import Path
 from typing import List
+from unittest.mock import MagicMock
 
 import pytest
 import tomli_w
@@ -463,21 +465,39 @@ def test_report_with_new_epoch_doesnt_alert(runner, db):
 # prune
 
 
-def test_prune_keeps_specified_number_of_points(runner, db):
-    api.push(db, "errors", value=1)
-    api.push(db, "errors", value=4)
-    api.push(db, "coverage", value=7)
-
+def test_prune_must_be_invoked_with_at_least_one_flag(runner, db):
     result = runner.invoke(
-        cli, ["--db", str(db.db_path), "prune", "--keep", 1], catch_exceptions=False
+        cli, ["--db", str(db.db_path), "prune"], catch_exceptions=False
     )
-    assert result.exit_code == 0, result.output
+    assert result.exit_code == 2, result.stdout + "\n" + result.stderr
+    assert "at least one of" in result.stderr
 
-    recents = list(db.recent())
-    assert [(p.metric_name, p.metric_value) for p in recents] == [
-        ("coverage", 7),
-        ("errors", 4),
-    ]
+
+def test_prune_calls_api_with_expected_args(monkeypatch, runner, db):
+    mock_prune = MagicMock()
+    mock_prune.return_value = 3
+    monkeypatch.setattr(api, "prune", mock_prune)
+    result = runner.invoke(
+        cli,
+        [
+            "--db",
+            str(db.db_path),
+            "prune",
+            "--keep-last",
+            "1",
+            "--keep-within",
+            "7d",
+            "--keep-auto",
+        ],
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 0, result.stdout + "\n" + result.stderr
+
+    assert "Pruned 3 points" in result.stdout
+    assert mock_prune.call_count == 1
+    assert mock_prune.call_args.kwargs["keep_last"] == 1
+    assert mock_prune.call_args.kwargs["keep_within"] == timedelta(days=7)
+    assert mock_prune.call_args.kwargs["keep_auto"]
 
 
 # migrate

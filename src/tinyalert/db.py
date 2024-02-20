@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Generator, Optional, Union
 
 import alembic.config
-from sqlalchemy import create_engine, delete, select, update
+from sqlalchemy import create_engine, delete, select, text, update
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 from sqlalchemy.types import JSON, TEXT, String
 
@@ -81,7 +81,7 @@ class DB:
 
     def recent(
         self, metric_name: Optional[str] = None, count: Optional[int] = 10
-    ) -> Generator[types.Point, None, None]:
+    ) -> Generator[Point, None, None]:
         query = select(Point)
         if metric_name is not None:
             query = query.filter_by(metric_name=metric_name)
@@ -90,13 +90,13 @@ class DB:
             query = query.limit(count)
         with self.session() as session:
             for row in session.execute(query):
-                yield types.Point.model_validate(row[0])
+                yield row[0]
 
-    def iter_all(self) -> Generator[types.Point, None, None]:
+    def iter_all(self) -> Generator[Point, None, None]:
         query = select(Point)
         with self.session() as session:
             for row in session.execute(query):
-                yield types.Point.model_validate(row[0])
+                yield row[0]
 
     def iter_metric_names(self) -> Generator[str, None, None]:
         with self.session() as session:
@@ -104,20 +104,14 @@ class DB:
             for metric_name in session.execute(metric_names_query):
                 yield metric_name[0]
 
-    def prune(self, keep: int = 10) -> int:
+    def prune_before(self, point: Point) -> int:
         count = 0
         with self.session() as session:
-            metric_names_query = select(Point.metric_name.distinct())
-            for metric_name in session.execute(metric_names_query):
-                to_delete = (
-                    select(Point.id)
-                    .filter_by(metric_name=metric_name[0])
-                    .order_by(Point.time.desc(), Point.id.desc())
-                    .offset(keep)
-                )
-                count += session.execute(
-                    delete(Point).where(Point.id.in_(to_delete.scalar_subquery()))
-                ).rowcount
+            count = session.execute(
+                delete(Point)
+                .where(Point.metric_name == point.metric_name)
+                .where(Point.id < point.id)
+            ).rowcount
             session.commit()
         return count
 
@@ -127,6 +121,10 @@ class DB:
 
     def run_alembic(self, *args):
         AlembicCLI(db_url=self.engine.url).main(argv=args)
+
+    def vacuum(self):
+        with self.session() as session:
+            session.execute(text("VACUUM"))
 
     @contextlib.contextmanager
     def session(self) -> Generator[Session, None, None]:

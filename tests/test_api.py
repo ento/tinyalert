@@ -1,6 +1,11 @@
+from datetime import timedelta
+from pathlib import Path
+
 import pytest
+import tomli
 
 from tinyalert import api
+from tinyalert.cli_helpers import Duration
 from tinyalert.types import GenerationMatchStatus, MeasureType
 
 
@@ -97,17 +102,33 @@ def test_combine_with_minimum_data(db, create_db, freezer):
     assert [p.metric_value for p in points] == [4, 7, 1]
 
 
-def test_prune_with_minimum_data(db):
-    api.push(db, "errors", value=1)
-    api.push(db, "errors", value=7)
+def test_prune_with_empty_db(db):
+    assert (
+        api.prune(db, keep_last=0, keep_within=timedelta(seconds=0), keep_auto=True)
+        == 0
+    )
+    assert (
+        api.prune(db, keep_last=1, keep_within=timedelta(seconds=1), keep_auto=True)
+        == 0
+    )
 
-    deleted = api.prune(db, 1)
-    assert deleted == 1
 
+@pytest.mark.parametrize(
+    "fixture_path",
+    list(Path(__file__).parent.joinpath("__fixtures__").glob("api_prune_*.toml")),
+)
+def test_prune_with_fixtures(db_from_csv, fixture_path):
+    testcase = tomli.loads(fixture_path.read_text())
+    db = db_from_csv(testcase["points"])
+
+    kwargs = testcase.get("args", {})
+    if "keep_within" in kwargs:
+        kwargs["keep_within"] = Duration.from_string(kwargs["keep_within"])
+    deleted = api.prune(db, **kwargs)
     points = list(db.recent())
 
-    assert len(points) == 1
-    assert points[0].metric_value == 7
+    assert deleted == testcase["result"]["return_value"]
+    assert [p.metric_value for p in points] == testcase["result"]["recent_values"]
 
 
 def test_recent(db):
