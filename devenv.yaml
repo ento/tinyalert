@@ -1,0 +1,15 @@
+inputs:
+  devenv:
+    #url: path:/home/ento/workspace/devenv/?dir=src/modules
+    url: github:blackheaven/devenv/containers/dev-options?dir=src/modules
+  nixpkgs:
+    url: github:cachix/devenv-nixpkgs/rolling
+  mk-shell-bin:
+    url: github:rrbutani/nix-mk-shell-bin
+  nix2container:
+    #url: github:nlewo/nix2container/verify-trace
+    #url: github:ento/nix2container/verify-trace-with-master
+    url: github:nlewo/nix2container
+    inputs:
+      nixpkgs:
+        follows: nixpkgs
