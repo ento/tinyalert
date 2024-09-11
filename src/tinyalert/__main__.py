@@ -1,3 +1,9 @@
 from .cli import cli
 
-cli(auto_envvar_prefix="TINYALERT")
+
+def main():
+    cli(auto_envvar_prefix="TINYALERT")
+
+
+if __name__ == "__main__":
+    main()
