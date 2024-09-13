@@ -6,8 +6,12 @@
     url = "github:nix-community/poetry2nix";
     inputs.nixpkgs.follows = "nixpkgs";
   };
+  inputs.pants-nix = {
+    url = "github:grihabor/pants-nix/main";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
 
-  outputs = { self, nixpkgs, flake-utils, poetry2nix }:
+  outputs = { self, nixpkgs, flake-utils, poetry2nix, pants-nix }:
     flake-utils.lib.eachDefaultSystem
       (system: let
         inherit (poetry2nix.legacyPackages.${system}) mkPoetryApplication overrides;
@@ -19,6 +23,7 @@
           pkgs.poetry
           pkgs.sqlite
           defaultPython
+          pants-nix.packages.${system}."release_2.19.0"
         ];
         app = mkPoetryApplication {
           projectDir = ./.;
