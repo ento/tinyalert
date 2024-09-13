@@ -1,8 +1,10 @@
 python_requirement(
     name="pytest",
     requirements=[
-      "pytest-freezer",
-        "syrupy",
+      "pytest>=7.3.1,<8",
+      "pytest-freezer>=0.4.6,<1",
+      "syrupy>=4.0.2,<5",
+      "tomli-w>=1.0.0,<2",
     ],
     resolve="pytest",
 )
