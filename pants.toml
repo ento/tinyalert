@@ -1,5 +1,5 @@
 [GLOBAL]
-pants_version = "2.19.0"
+pants_version = "2.21.0"
 backend_packages = [
   "pants.backend.python",
   "pants.backend.python.lint.black",
@@ -21,6 +21,7 @@ known_versions = [
 
 [python]
 interpreter_constraints = [">=3.8.1,<4"]
+pip_version = "latest"
 enable_resolves = true
 
 [python.resolves]

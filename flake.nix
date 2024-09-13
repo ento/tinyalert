@@ -23,7 +23,7 @@
           pkgs.poetry
           pkgs.sqlite-interactive
           defaultPython
-          pants-nix.packages.${system}."release_2.19.0"
+          pants-nix.packages.${system}."release_2.21.0"
         ];
         app = mkPoetryApplication {
           projectDir = ./.;
