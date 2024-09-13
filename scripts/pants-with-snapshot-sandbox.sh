@@ -33,7 +33,7 @@ copy_snapshots() {
 copy_snapshots tests "$tmpdir/tests"
 
 exit_code=0
-PANTS_WITH_SNAPSHOTS_HACK_DIR="$tmpdir" ./pants "$@" || exit_code="$?"
+PANTS_WITH_SNAPSHOTS_HACK_DIR="$tmpdir" pants "$@" || exit_code="$?"
 
 copy_snapshots "$tmpdir/tests" tests
 
