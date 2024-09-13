@@ -1,5 +1,5 @@
 [GLOBAL]
-pants_version = "2.15.0"
+pants_version = "2.16.0"
 backend_packages = [
   "pants.backend.python",
   "pants.backend.python.lint.black",
@@ -13,6 +13,7 @@ repo_id = "9a0568c1-c694-43f2-a9f9-b20efbb65174"
 
 [pex-cli]
 version = "v2.1.115"
+use_unsupported_version = "warning"
 url_template = "https://github.com/ento/pex/releases/download/{version}/pex"
 known_versions = [
   "v2.1.115|linux_x86_64|26da5510ef063e62945bc24ecc68833e8de1035dc5e70d8edd1c2931ae539eae|4098477",
@@ -21,17 +22,21 @@ known_versions = [
 [python]
 interpreter_constraints = [">=3.8.1,<4"]
 enable_resolves = true
+default_resolve = "python-default"
+
+[python.resolves]
+python-default = "3rdparty/python/default.lock"
+pytest = "3rdparty/python/pytest.lock"
+
+[python.resolves_to_no_binary]
+python-default = [":all:"]
 
 [python-bootstrap]
 # Limit to Python interpreter installed by flake.nix
 search_path = ["%(env.PYTHON_SEARCH_PATH)s"]
 
 [pytest]
-lockfile = "3rdparty/python/pytest.lock"
-extra_requirements.add = [
-  "pytest-freezer",
-  "syrupy",
-]
+install_from_resolve = "pytest"
 
 [test]
 extra_env_vars = [
