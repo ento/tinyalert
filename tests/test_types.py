@@ -88,20 +88,16 @@ def test_report_data_violates_relative_min(rel_min, value, prev, expected):
 
 
 @pytest.mark.parametrize(
-    "violates_max,violates_min,skipped,expected",
+    "violates_max,violates_min,expected",
     [
-        (True, True, False, True),
-        (True, False, False, True),
-        (False, True, False, True),
-        (False, False, False, False),
-        (True, True, True, True),
-        (True, False, True, True),
-        (False, True, True, True),
-        (False, False, True, False),
+        (True, True, True),
+        (True, False, True),
+        (False, True, True),
+        (False, False, False),
     ],
 )
 def test_report_data_violates_absolute_limits(
-    monkeypatch, violates_max, violates_min, skipped, expected
+    monkeypatch, violates_max, violates_min, expected
 ):
     data = ReportData(metric_name="test")
     monkeypatch.setattr(ReportData, "violates_absolute_max", violates_max)
@@ -111,20 +107,16 @@ def test_report_data_violates_absolute_limits(
 
 
 @pytest.mark.parametrize(
-    "violates_max,violates_min,skipped,expected",
+    "violates_max,violates_min,expected",
     [
-        (True, True, False, True),
-        (True, False, False, True),
-        (False, True, False, True),
-        (False, False, False, False),
-        (True, True, True, True),
-        (True, False, True, True),
-        (False, True, True, True),
-        (False, False, True, False),
+        (True, True, True),
+        (True, False, True),
+        (False, True, True),
+        (False, False, False),
     ],
 )
 def test_report_data_violates_relative_limits(
-    monkeypatch, violates_max, violates_min, skipped, expected
+    monkeypatch, violates_max, violates_min, expected
 ):
     data = ReportData(metric_name="test")
     monkeypatch.setattr(ReportData, "violates_relative_max", violates_max)
