@@ -9,9 +9,3 @@ python_requirements(
     source="flake8-requirements.txt",
     resolve="flake8",
 )
-
-python_requirements(
-    name="pytest",
-    source="pytest-requirements.txt",
-    resolve="pytest",
-)
