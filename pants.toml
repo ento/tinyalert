@@ -12,11 +12,11 @@ enabled = true
 repo_id = "9a0568c1-c694-43f2-a9f9-b20efbb65174"
 
 [pex-cli]
-version = "v2.1.115"
-use_unsupported_version = "warning"
+version = "v2.18.1"
 url_template = "https://github.com/ento/pex/releases/download/{version}/pex"
 known_versions = [
   "v2.1.115|linux_x86_64|26da5510ef063e62945bc24ecc68833e8de1035dc5e70d8edd1c2931ae539eae|4098477",
+  "v2.18.1|linux_x86_64|88124f8d7640f3bb511bd58db02a86bbad7679c9310bff4b51e9d0c3a3ed7d7d|4306444",
 ]
 
 [python]
