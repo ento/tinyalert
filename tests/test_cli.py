@@ -4,6 +4,7 @@ from typing import List
 
 import pytest
 import tomli_w
+from attrs import asdict, filters, fields
 from click.testing import CliRunner
 
 from tinyalert import api
@@ -30,7 +31,7 @@ def write_config(temp_dir):
             tomli_w.dumps(
                 {
                     "metrics": {
-                        m.name: m.model_dump(exclude=["name"], exclude_none=True)
+                        m.name: asdict(m, filter=filters.exclude(type(None), fields(MetricConfig).name))
                         for m in metrics
                     }
                 }

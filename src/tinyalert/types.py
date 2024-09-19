@@ -1,12 +1,18 @@
 import datetime
 import enum
 from functools import cached_property
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from attrs import define, field
+from cattrs import structure
 
 
-class Point(BaseModel):
+if TYPE_CHECKING:
+    from . import db
+
+
+@define
+class Point:
     metric_name: str
     time: datetime.datetime
     metric_value: Optional[float]
@@ -20,9 +26,26 @@ class Point(BaseModel):
     skipped: bool = False
     epoch: int = 0
     generation: int = 0
-    tags: Dict[str, Any] = {}
+    tags: Dict[str, Any] = field(factory=dict)
 
-    model_config = dict(from_attributes=True)
+    @classmethod
+    def from_orm(cls, model: "db.Point") -> "Point":
+        return cls(
+            metric_name=model.metric_name,
+            time=model.time,
+            metric_value=model.metric_value,
+            absolute_max=model.absolute_max,
+            absolute_min=model.absolute_min,
+            relative_max=model.relative_max,
+            relative_min=model.relative_min,
+            measure_source=model.measure_source,
+            diffable_content=model.diffable_content,
+            url=model.url,
+            skipped=model.skipped,
+            epoch=model.epoch,
+            generation=model.generation,
+            tags=model.tags,
+        )
 
 
 class SourceType(str, enum.Enum):
@@ -36,26 +59,28 @@ class EvalType(str, enum.Enum):
     raw = "raw"
 
 
-class MeasureType(BaseModel):
+@define
+class MeasureType:
     source_type: SourceType
     eval_type: EvalType
 
-    @model_validator(mode="before")
-    def parse_string_format(cls, v):
-        attrs = v
+    @classmethod
+    def parse(cls, v: Union[str, "MeasureType"]) -> "MeasureType":
         if isinstance(v, str):
             source_type, eval_type = v.split("-")
-            attrs = dict(source_type=source_type, eval_type=eval_type)
-        return attrs
+            return cls(source_type=source_type, eval_type=eval_type)
+        return v
 
 
-class MetricConfig(BaseModel):
+@define
+class MetricConfig:
     name: str
     measure_source: str
-    measure_type: MeasureType = Field(
-        default_factory=lambda: MeasureType(
+    measure_type: MeasureType = field(
+        factory=lambda: MeasureType(
             source_type=SourceType.file_, eval_type=EvalType.lines
-        )
+        ),
+        converter=lambda v: MeasureType.parse(v),
     )
     diffable_source: str = None
     diffable_type: SourceType = SourceType.file_
@@ -68,23 +93,26 @@ class MetricConfig(BaseModel):
     epoch: int = 0
 
 
-class Config(BaseModel):
-    metrics: List[MetricConfig] = Field(default_factory=list)
+@define
+class Config:
+    metrics: List[MetricConfig] = field(
+        factory=list,
+    )
 
-    @field_validator("metrics", mode="before")
-    def validate_metrics(cls, v):
-        return [
-            MetricConfig.model_validate(dict(name=name, **attrs))
-            for name, attrs in v.items()
-        ]
+    @classmethod
+    def from_toml(cls, config: Dict[str, Any]) -> "Config":
+        metrics = [dict(name=name, **attrs) for name, attrs in config.get("metrics", {}).items()]
+        return structure(dict(metrics=metrics), cls)
 
 
-class MeasureResult(BaseModel):
+@define
+class MeasureResult:
     value: float
     source: str
 
 
-class MetricDiff(BaseModel):
+@define
+class MetricDiff:
     metric_name: str
     diff: str
 
@@ -95,12 +123,13 @@ class GenerationMatchStatus(enum.Enum):
     MATCHED = "matched"
 
 
-class ReportData(BaseModel):
+@define
+class ReportData:
     metric_name: str
     generation_status: GenerationMatchStatus = GenerationMatchStatus.NONE_SPECIFIED
     latest_value: Optional[float] = None
     previous_value: Optional[float] = None
-    latest_values: List[float] = Field(default_factory=list)
+    latest_values: List[float] = field(factory=list)
     absolute_max: Optional[float] = None
     absolute_min: Optional[float] = None
     relative_max: Optional[float] = None

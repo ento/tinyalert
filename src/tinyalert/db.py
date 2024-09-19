@@ -61,7 +61,7 @@ class DB:
             )
             session.add(db_point)
             session.commit()
-            return types.Point.model_validate(db_point)
+            return types.Point.from_orm(db_point)
 
     def skip_latest(self, metric_name: str):
         to_update = (
@@ -90,13 +90,13 @@ class DB:
             query = query.limit(count)
         with self.session() as session:
             for row in session.execute(query):
-                yield types.Point.model_validate(row[0])
+                yield types.Point.from_orm(row[0])
 
     def iter_all(self) -> Generator[types.Point, None, None]:
         query = select(Point)
         with self.session() as session:
             for row in session.execute(query):
-                yield types.Point.model_validate(row[0])
+                yield types.Point.from_orm(row[0])
 
     def iter_metric_names(self) -> Generator[str, None, None]:
         with self.session() as session:

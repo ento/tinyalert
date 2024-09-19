@@ -48,7 +48,7 @@ def test_measure(monkeypatch, tmp_path, source, method, expected):
     tmp_path.joinpath("test.md").write_text("10")
     monkeypatch.chdir(tmp_path)
 
-    result = api.measure(source, MeasureType.model_validate(method))
+    result = api.measure(source, MeasureType.parse(method))
     assert result.value == expected
     assert result.source == "10"
 

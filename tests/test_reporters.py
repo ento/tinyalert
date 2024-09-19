@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
 
 import pytest
+from cattrs import structure
 
 from tinyalert.reporters import (
     DiffReporter,
@@ -15,7 +16,7 @@ def test_table_reporter_outputs(snapshot):
     reporter = TableReporter()
     reporter.add(ReportData(metric_name="null"))
     reporter.add(
-        ReportData(
+        structure(dict(
             metric_name="kitchen-sink",
             latest_value=2,
             previous_value=1,
@@ -26,7 +27,7 @@ def test_table_reporter_outputs(snapshot):
             relative_min=2,
             latest_url="http://example.com/latest",
             previous_url="http://example.com/prev",
-        )
+        ), ReportData)
     )
 
     assert reporter.get_value() == snapshot
@@ -34,7 +35,7 @@ def test_table_reporter_outputs(snapshot):
 
 def test_table_reporter_omits_details_column_when_possible(snapshot):
     reporter = TableReporter()
-    reporter.add(ReportData(metric_name="null"))
+    reporter.add(structure(dict(metric_name="null"), ReportData))
 
     assert reporter.get_value() == snapshot
 
@@ -42,7 +43,7 @@ def test_table_reporter_omits_details_column_when_possible(snapshot):
 def test_table_reporter_outputs_latest_value_when_generation_didnt_match(snapshot):
     reporter = TableReporter()
     reporter.add(
-        ReportData(
+        structure(dict(
             metric_name="kitchen-sink",
             generation_status=GenerationMatchStatus.NONE_MATCHED,
             latest_value=2,
@@ -54,7 +55,7 @@ def test_table_reporter_outputs_latest_value_when_generation_didnt_match(snapsho
             relative_min=2,
             latest_url="http://example.com/latest",
             previous_url="http://example.com/prev",
-        )
+        ), ReportData)
     )
 
     assert reporter.get_value() == snapshot
@@ -64,7 +65,7 @@ def test_list_reporter_outputs(snapshot):
     reporter = ListReporter()
     reporter.add(ReportData(metric_name="null"))
     reporter.add(
-        ReportData(
+        structure(dict(
             metric_name="kitchen-sink",
             latest_value=2,
             previous_value=1,
@@ -75,7 +76,7 @@ def test_list_reporter_outputs(snapshot):
             relative_min=2,
             latest_url="http://example.com/latest",
             previous_url="http://example.com/prev",
-        )
+        ), ReportData)
     )
 
     assert reporter.get_value() == snapshot
@@ -85,13 +86,13 @@ def test_diff_reporter_outputs(snapshot):
     reporter = DiffReporter()
     reporter.add(ReportData(metric_name="null"))
     reporter.add(
-        ReportData(
+        structure(dict(
             metric_name="kitchen-sink",
             latest_value=2,
             absolute_max=0,
             latest_diffable_content="aaa",
             previous_diffable_content="bbb",
-        )
+        ), ReportData)
     )
 
     assert reporter.get_value() == snapshot
@@ -100,13 +101,13 @@ def test_diff_reporter_outputs(snapshot):
 def test_diff_reporter_outputs_nothing_when_no_diffable_content(snapshot):
     reporter = DiffReporter()
     reporter.add(
-        ReportData(
+        structure(dict(
             metric_name="kitchen-sink",
             latest_value=2,
             absolute_max=0,
             latest_diffable_content=None,
             previous_diffable_content=None,
-        )
+        ), ReportData)
     )
 
     assert reporter.get_value() == snapshot

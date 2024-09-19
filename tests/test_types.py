@@ -103,7 +103,7 @@ def test_report_data_violates_relative_min(rel_min, value, prev, expected):
 def test_report_data_violates_absolute_limits(
     monkeypatch, violates_max, violates_min, skipped, expected
 ):
-    data = ReportData.model_validate(dict(metric_name="test", skipped=skipped))
+    data = ReportData(metric_name="test")
     monkeypatch.setattr(ReportData, "violates_absolute_max", violates_max)
     monkeypatch.setattr(ReportData, "violates_absolute_min", violates_min)
 
@@ -126,7 +126,7 @@ def test_report_data_violates_absolute_limits(
 def test_report_data_violates_relative_limits(
     monkeypatch, violates_max, violates_min, skipped, expected
 ):
-    data = ReportData.model_validate(dict(metric_name="test", skipped=skipped))
+    data = ReportData(metric_name="test")
     monkeypatch.setattr(ReportData, "violates_relative_max", violates_max)
     monkeypatch.setattr(ReportData, "violates_relative_min", violates_min)
 
@@ -171,7 +171,7 @@ def test_report_data_doesnt_violate_any_threshold_when_generation_doesnt_match(
     ],
 )
 def test_report_data_violates_limits(monkeypatch, violates_abs, violates_rel, expected):
-    data = ReportData.model_validate(dict(metric_name="test"))
+    data = ReportData(metric_name="test")
     monkeypatch.setattr(ReportData, "violates_absolute_limits", violates_abs)
     monkeypatch.setattr(ReportData, "violates_relative_limits", violates_rel)
 

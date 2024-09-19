@@ -5,12 +5,17 @@ from typing import Any, Dict, List, Optional
 
 import click
 import tomli
+from cattrs import unstructure
+from cattrs.preconf.json import make_converter as make_json_converter
 
 from . import api, db
 from .reporters import DiffReporter, ListReporter, StatusReporter, TableReporter
 from .types import Config
 
 ENVVAR_PREFIX = "TINYALERT_"
+
+
+json_converter = make_json_converter()
 
 
 class JSONType(click.ParamType):
@@ -174,7 +179,7 @@ def measure(
     json_tags: list[tuple[str, Any]],
 ):
     raw = tomli.loads(Path(config_path).read_text())
-    config = Config.model_validate(raw)
+    config = Config.from_toml(raw)
     metric_configs_by_name = {metric.name: metric for metric in config.metrics}
     if metrics and set(metrics) - set(metric_configs_by_name.keys()):
         click.echo(
@@ -230,7 +235,7 @@ def combine(ctx, src_db_pattern):
 def recent(ctx, output_format):
     for p in api.recent(ctx.obj):
         if output_format == "json":
-            print(p.model_dump_json())
+            print(json_converter.dumps(p))
         else:
             print("{time} {metric_name} {metric_value}".format(**p.dict()))
 
@@ -279,7 +284,7 @@ def report(ctx, generation, output_format, mute):
             status = "alarm"
         output = {
             "reports": {
-                metric_name: report.model_dump(mode="json")
+                metric_name: unstructure(report)
                 for metric_name, report in reports.items()
             },
             "table": table_reporter.get_value(),

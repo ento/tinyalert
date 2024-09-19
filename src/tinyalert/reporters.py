@@ -1,6 +1,7 @@
 import difflib
 import textwrap
 
+from attrs import asdict
 from tabulate import tabulate
 from termcolor import colored
 
@@ -184,7 +185,7 @@ class DiffReporter:
 
         </details>
         """
-        ).format(**metric_diff.model_dump())
+        ).format(**asdict(metric_diff))
 
 
 class StatusReporter:
