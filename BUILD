@@ -3,6 +3,6 @@ poetry_requirements(
 )
 
 pex_binary(
-  name="app",
-  entry_point="src/tinyalert/__main__.py",
+    name="app",
+    entry_point="src/tinyalert/__main__.py",
 )
