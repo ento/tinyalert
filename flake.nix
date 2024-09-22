@@ -2,6 +2,8 @@
 # and enable flakes: https://nixos.wiki/wiki/Flakes#Enable_flakes
 # Then install direnv: https://direnv.net/
 {
+  # Match what pants-nix pins to
+  inputs.nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-23.11";
   inputs.poetry2nix = {
     url = "github:nix-community/poetry2nix";
     inputs.nixpkgs.follows = "nixpkgs";
@@ -23,7 +25,9 @@
           pkgs.poetry
           pkgs.sqlite
           defaultPython
-          pants-nix.packages.${system}."release_2.21.0"
+          (pants-nix.packages.${system}."release_2.21.0".override {
+            python3 = defaultPython;
+          })
         ];
         app = mkPoetryApplication {
           projectDir = ./.;
