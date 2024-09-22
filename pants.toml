@@ -28,9 +28,6 @@ default_resolve = "python-default"
 [python.resolves]
 python-default = "3rdparty/python/default.lock"
 
-[python.resolves_to_no_binary]
-python-default = ["sqlalchemy", "MarkupSafe"]
-
 [python-bootstrap]
 # Limit to Python interpreter installed by flake.nix
 search_path = ["%(env.PYTHON_SEARCH_PATH)s"]
