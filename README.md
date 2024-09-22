@@ -19,3 +19,11 @@ Packaging
 ```sh
 ./pants package ::
 ```
+
+Building Docker image locally
+
+```sh
+echo CACHIX_AUTH_TOKEN=[..] >> .env
+echo CACHIX_CACHE_NAME=tinyalert >> .env
+./scripts/local-build.sh
+```
