@@ -20,5 +20,6 @@ RUN nix develop -c pants --print-stacktrace -ldebug --pex-verbosity=9  package :
 
 FROM python:3.10-slim
 COPY --from=builder /work/dist/app.pex /bin/tinyalert
+RUN apt-get update && apt-get install -y jq
 WORKDIR /work
 ENTRYPOINT ["/bin/tinyalert"]
