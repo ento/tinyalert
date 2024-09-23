@@ -1,0 +1,43 @@
+name: 'tinyalert'
+description: 'Record and alert on metrics completely offline'
+inputs:
+  tag:
+    description: 'Tag of Docker image to use'
+    default: 'latest'
+  digest:
+    description: 'Digest of Docker image to use; takes precedence over tag'
+    required: false
+  working-directory:
+    description: 'Absolute path of directory to mount'
+    default: ${{ github.workspace }}
+runs:
+  using: "composite"
+  steps:
+    - name: Install tinyalert executable
+      run: |
+        import os
+        import textwrap
+        from pathlib import Path
+
+        tag = os.environ["tag"]
+        digest = os.environ["digest"]
+        tag_or_digest = f"@{digest}" if digest else f":{tag}"
+
+        action_path = Path(os.environ["action_path"])
+        bin_dir = action_path / "bin"
+        bin_dir.mkdir(parents=True, exist_ok=True)
+        bin_path = bin_dir / "tinyalert"
+
+        bin_path.write_text(textwrap.dedent(f"""
+        #!/usr/bin/env bash
+        exec docker run --rm -v ${{ inputs.working-directory }}:/work ghcr.io/ento/tinyalert{tag_or_digest} "$@"
+        """))
+        bin_path.chmod(0o755)
+
+        with open(os.environ["GITHUB_PATH"], "a", encoding="utf8", newline="") as f:
+          f.write(f"{bin_dir}{os.linesep}")
+      shell: python
+      env:
+        action_path: ${{ github.action_path }}
+        tag: ${{ inputs.tag }}
+        digest: ${{ inputs.digest }}
