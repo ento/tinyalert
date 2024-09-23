@@ -9,7 +9,7 @@
     inputs.nixpkgs.follows = "nixpkgs";
   };
   inputs.pants-nix = {
-    url = "github:grihabor/pants-nix/main";
+    url = "github:ento/pants-nix?ref=5e89259149bbe5f5e808981758cecf9b60a189ed";
     inputs.nixpkgs.follows = "nixpkgs";
   };
 
