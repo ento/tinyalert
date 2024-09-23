@@ -7,31 +7,46 @@ inputs:
   digest:
     description: 'Digest of Docker image to use; takes precedence over tag'
     required: false
-  working-directory:
-    description: 'Absolute path of directory to mount'
-    default: ${{ github.workspace }}
 runs:
   using: "composite"
   steps:
-    - name: Install tinyalert executable
+    - name: Determine image ref
+      id: image_ref
       run: |
         import os
-        import textwrap
-        from pathlib import Path
 
         tag = os.environ["tag"]
         digest = os.environ["digest"]
         tag_or_digest = f"@{digest}" if digest else f":{tag}"
+        image_ref = f"ghcr.io/ento/tinyalert{tag_or_digest}"
+
+        with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf8", newline="") as f:
+          f.write(f"image_ref={image_ref}{os.linesep}")
+      shell: python
+      env:
+        tag: ${{ inputs.tag }}
+        digest: ${{ inputs.digest }}
+    - name: Pull Docker image
+      run: |
+        docker pull ${{ steps.image_ref.outputs.image_ref }}
+      shell: bash
+    - name: Install tinyalert executable
+      run: |
+        import os
+        import shlex
+        from pathlib import Path
 
         action_path = Path(os.environ["action_path"])
         bin_dir = action_path / "bin"
         bin_dir.mkdir(parents=True, exist_ok=True)
-        bin_path = bin_dir / "tinyalert"
 
-        bin_path.write_text(textwrap.dedent(f"""
-        #!/usr/bin/env bash
-        exec docker run --rm -v ${{ inputs.working-directory }}:/work ghcr.io/ento/tinyalert{tag_or_digest} "$@"
-        """))
+        bin_path = bin_dir / "tinyalert"
+        script = """#!/usr/bin/env bash
+        exec docker run --rm -v $(pwd):/work {image_ref} "$@"
+        """.format(
+            image_ref=shlex.quote(os.environ["image_ref"]),
+        )
+        bin_path.write_text(script)
         bin_path.chmod(0o755)
 
         with open(os.environ["GITHUB_PATH"], "a", encoding="utf8", newline="") as f:
@@ -39,5 +54,4 @@ runs:
       shell: python
       env:
         action_path: ${{ github.action_path }}
-        tag: ${{ inputs.tag }}
-        digest: ${{ inputs.digest }}
+        image_ref: ${{ steps.image_ref.outputs.image_ref }}
