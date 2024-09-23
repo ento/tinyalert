@@ -36,6 +36,7 @@
   "allow_wheels": true,
   "build_isolation": true,
   "constraints": [],
+  "excluded": [],
   "locked_resolves": [
     {
       "locked_requirements": [
@@ -1719,9 +1720,10 @@
   ],
   "only_builds": [],
   "only_wheels": [],
+  "overridden": [],
   "path_mappings": {},
-  "pex_version": "2.3.1",
-  "pip_version": "24.0",
+  "pex_version": "2.18.1",
+  "pip_version": "24.2",
   "prefer_older_binary": false,
   "requirements": [
     "alembic<2.0.0,>=1.10.4",
