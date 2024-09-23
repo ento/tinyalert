@@ -17,6 +17,7 @@ url_template = "https://github.com/ento/pex/releases/download/{version}/pex"
 known_versions = [
   "v2.1.115|linux_x86_64|26da5510ef063e62945bc24ecc68833e8de1035dc5e70d8edd1c2931ae539eae|4098477",
   "v2.18.1|linux_x86_64|88124f8d7640f3bb511bd58db02a86bbad7679c9310bff4b51e9d0c3a3ed7d7d|4306444",
+  "v2.18.1|linux_arm64|b25f7d91320e1dd38cd974e1028e169a0b059b5b3a49595d96c7b49b7fe372ba|24047371",
 ]
 
 [python]
