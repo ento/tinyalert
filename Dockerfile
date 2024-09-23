@@ -16,7 +16,7 @@ RUN --mount=type=secret,id=CACHIX_AUTH_TOKEN,env=CACHIX_AUTH_TOKEN \
   [[ ! $CACHIX_CACHE_NAME ]] || cachix push $CACHIX_CACHE_NAME /tmp/profile
 
 COPY . /work
-RUN nix develop -c pants package ::
+RUN nix develop -c pants --print-stacktrace -ldebug --pex-verbosity=9  package ::
 
 FROM python:3.10-slim
 COPY --from=builder /work/dist/app.pex /bin/tinyalert
