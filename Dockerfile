@@ -20,4 +20,5 @@ RUN nix develop -c pants package ::
 
 FROM python:3.10-slim
 COPY --from=builder /work/dist/app.pex /bin/tinyalert
+WORKDIR /work
 ENTRYPOINT ["/bin/tinyalert"]
