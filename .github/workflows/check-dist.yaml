@@ -31,7 +31,7 @@ jobs:
           gha-cache-key: cache0
           named-caches-hash: ${{ hashFiles('3rdparty/python/*.lock') }}
       - run: |
-          nix develop --command ./pants --keep-sandboxes=always -ldebug package ::
+          nix develop --command pants --keep-sandboxes=always -ldebug package ::
       - name: Compare the expected and actual dist/ directories
         run: |
           if [ "$(git diff --ignore-space-at-eol dist/ | wc -l)" -gt "0" ]; then

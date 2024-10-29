@@ -1,0 +1,14 @@
+# Ignore everything by default
+*
+# Copy Nix files
+!*.nix
+# Copy Pants files
+!BUILD
+!3rdparty
+!pants.toml
+# Copy app source
+!src
+# Copy Python stuff
+!pyproject.toml
+# Ignore Python cache
+**/__pycache__/

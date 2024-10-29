@@ -1,0 +1,57 @@
+name: 'tinyalert'
+description: 'Record and alert on metrics completely offline'
+inputs:
+  tag:
+    description: 'Tag of Docker image to use'
+    default: 'latest'
+  digest:
+    description: 'Digest of Docker image to use; takes precedence over tag'
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - name: Determine image ref
+      id: image_ref
+      run: |
+        import os
+
+        tag = os.environ["tag"]
+        digest = os.environ["digest"]
+        tag_or_digest = f"@{digest}" if digest else f":{tag}"
+        image_ref = f"ghcr.io/ento/tinyalert{tag_or_digest}"
+
+        with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf8", newline="") as f:
+          f.write(f"image_ref={image_ref}{os.linesep}")
+      shell: python
+      env:
+        tag: ${{ inputs.tag }}
+        digest: ${{ inputs.digest }}
+    - name: Pull Docker image
+      run: |
+        docker pull ${{ steps.image_ref.outputs.image_ref }}
+      shell: bash
+    - name: Install tinyalert executable
+      run: |
+        import os
+        import shlex
+        from pathlib import Path
+
+        action_path = Path(os.environ["action_path"])
+        bin_dir = action_path / "bin"
+        bin_dir.mkdir(parents=True, exist_ok=True)
+
+        bin_path = bin_dir / "tinyalert"
+        script = """#!/usr/bin/env bash
+        exec docker run --rm -v $(pwd):/work {image_ref} "$@"
+        """.format(
+            image_ref=shlex.quote(os.environ["image_ref"]),
+        )
+        bin_path.write_text(script)
+        bin_path.chmod(0o755)
+
+        with open(os.environ["GITHUB_PATH"], "a", encoding="utf8", newline="") as f:
+          f.write(f"{bin_dir}{os.linesep}")
+      shell: python
+      env:
+        action_path: ${{ github.action_path }}
+        image_ref: ${{ steps.image_ref.outputs.image_ref }}
