@@ -89,3 +89,12 @@ jobs:
           digest: ${{ needs.release-docker.outputs.digest }}
       - run: |
           tinyalert --help
+          tinyalert --db tinyalert.sqlite \
+            measure \
+            --config integration/smoke.toml \
+            --metrics smoke
+          if [ ! -f tinyalert.sqlite ]; then
+            echo "Expected tinyalert.sqlite to be created"
+            exit 1
+          fi
+          ls -l
