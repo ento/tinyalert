@@ -21,6 +21,16 @@ jobs:
     outputs:
       digest: ${{ steps.build.outputs.digest }}
     steps:
+      # Enable containerd for multi-arch support when using docker exporter
+      # https://github.com/docker/buildx/issues/59
+      - uses: crazy-max/ghaction-setup-docker@26145a578dce008fee793528d031cd72c57d51af # v3.4.0
+        with:
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - name: Log in to the Container registry
