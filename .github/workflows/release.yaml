@@ -55,13 +55,12 @@ jobs:
             CACHIX_CACHE_NAME=${{ vars.CACHIX_CACHE_NAME }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-      - uses: ./setup/
-        with:
-          digest: ${{ steps.build.outputs.digest }}
       - name: Smoke test
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
         run: |
-          tinyalert --help
-          tinyalert \
+          docker images
+          docker run --rm -v $(pwd):/work $REGISTRY/$IMAGE_NAME@$DIGEST \
             --db tinyalert.sqlite \
             measure \
             --config integration/smoke.toml \
