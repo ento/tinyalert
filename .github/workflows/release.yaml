@@ -69,6 +69,7 @@ jobs:
             echo "Expected tinyalert.sqlite to be created"
             exit 1
           fi
+          ls -l
       - if: ${{ github.event_name == 'push' }}
         name: Generate artifact attestation
         uses: actions/attest-build-provenance@v1
