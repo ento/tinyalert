@@ -59,17 +59,16 @@ jobs:
         env:
           DIGEST: ${{ steps.build.outputs.digest }}
         run: |
-          docker images
+          export TINYALERT_DB_PATH=smoke.sqlite
+          export TINYALERT_CONFIG=integration/smoke.toml
           docker run --rm -v $(pwd):/work $REGISTRY/$IMAGE_NAME@$DIGEST \
-            --db tinyalert.sqlite \
             measure \
-            --config integration/smoke.toml \
             --metrics smoke
-          if [ ! -f tinyalert.sqlite ]; then
+          if [ ! -f "$TINYALERT_DB_PATH" ]; then
             echo "Expected tinyalert.sqlite to be created"
+            ls -l
             exit 1
           fi
-          ls -l
       - if: ${{ github.event_name == 'push' }}
         name: Generate artifact attestation
         uses: actions/attest-build-provenance@v1
@@ -89,12 +88,11 @@ jobs:
           digest: ${{ needs.release-docker.outputs.digest }}
       - run: |
           tinyalert --help
-          tinyalert --db tinyalert.sqlite \
-            measure \
-            --config integration/smoke.toml \
-            --metrics smoke
-          if [ ! -f tinyalert.sqlite ]; then
+          export TINYALERT_DB_PATH=smoke.sqlite
+          export TINYALERT_CONFIG=integration/smoke.toml
+          tinyalert measure --metrics smoke
+          if [ ! -f "$TINYALERT_DB_PATH" ]; then
             echo "Expected tinyalert.sqlite to be created"
+            ls -l
             exit 1
           fi
-          ls -l
