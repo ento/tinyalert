@@ -130,6 +130,7 @@ def split_values(ctx, param, value):
     "config_path",
     type=click.Path(exists=True, path_type=Path),
     default="tinyalert.toml",
+    envvar=ENVVAR_PREFIX + "CONFIG",
     show_default=True,
 )
 @click.option(
