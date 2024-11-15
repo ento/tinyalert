@@ -61,7 +61,12 @@ jobs:
         run: |
           export TINYALERT_DB_PATH=smoke.sqlite
           export TINYALERT_CONFIG=integration/smoke.toml
-          docker run --rm -v $(pwd):/work $REGISTRY/$IMAGE_NAME@$DIGEST \
+          docker \
+            run \
+            --rm \
+            -v $(pwd):/work \
+            --env-file <(env | grep TINYALERT_) \
+            $REGISTRY/$IMAGE_NAME@$DIGEST \
             measure \
             --metrics smoke
           if [ ! -f "$TINYALERT_DB_PATH" ]; then

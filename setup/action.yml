@@ -42,7 +42,7 @@ runs:
 
         bin_path = bin_dir / "tinyalert"
         script = """#!/usr/bin/env bash
-        exec docker run --rm -v $(pwd):/work {image_ref} "$@"
+        exec docker run --rm -v $(pwd):/work --env-file <(env | grep TINYALERT_) {image_ref} "$@"
         """.format(
             image_ref=shlex.quote(os.environ["image_ref"]),
         )
