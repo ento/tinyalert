@@ -169,6 +169,10 @@ def _prune_point_auto(points: List[DBPoint]) -> Optional[DBPoint]:
     return current_epoch_points[-1] if current_epoch_points else None
 
 
+def rename(db: DB, from_name: str, to_name: str) -> int:
+    return db.rename(from_name, to_name)
+
+
 def recent(db: DB, count: int = 10) -> Iterator[Point]:
     assert count > 0, "count must be greater than 0"
     for p in db.recent(count=count):

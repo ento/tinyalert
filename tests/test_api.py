@@ -131,6 +131,47 @@ def test_prune_with_fixtures(db_from_csv, fixture_path):
     assert [p.metric_value for p in points] == testcase["result"]["recent_values"]
 
 
+def test_rename(db):
+    api.push(db, "warnings", value=10, epoch=1)
+    api.push(db, "warnings", value=10, epoch=2)
+    api.push(db, "errors", value=10, epoch=1)
+    api.push(db, "errors", value=10, epoch=2)
+
+    count = api.rename(db, "warnings", "infos")
+
+    assert count == 2
+
+    assert len(list(db.recent("warnings", count=10))) == 0
+    assert len(list(db.recent("errors", count=10))) == 2
+    assert len(list(db.recent("infos", count=10))) == 2
+
+
+def test_rename_no_points(db):
+    api.push(db, "warnings", value=10, epoch=1)
+    api.push(db, "warnings", value=10, epoch=2)
+
+    count = api.rename(db, "errors", "infos")
+
+    assert count == 0
+
+    assert len(list(db.recent("warnings", count=10))) == 2
+    assert len(list(db.recent("infos", count=10))) == 0
+
+
+def test_rename_existing_points_with_same_destination_name(db):
+    api.push(db, "warnings", value=10, epoch=1)
+    api.push(db, "warnings", value=10, epoch=2)
+    api.push(db, "errors", value=10, epoch=1)
+    api.push(db, "errors", value=10, epoch=2)
+
+    count = api.rename(db, "warnings", "errors")
+
+    assert count == 2
+
+    assert len(list(db.recent("warnings", count=10))) == 0
+    assert len(list(db.recent("errors", count=10))) == 4
+
+
 def test_recent(db):
     api.push(
         db,
