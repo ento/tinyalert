@@ -500,6 +500,17 @@ def test_prune_calls_api_with_expected_args(monkeypatch, runner, db):
     assert mock_prune.call_args.kwargs["keep_auto"]
 
 
+# rename
+
+
+def test_rename_command(runner, db):
+    api.push(db, "errors", value=10, absolute_max=0)
+    result = runner.invoke(
+        cli, ["--db", str(db.db_path), "rename", "errors", "warnings"], catch_exceptions=False
+    )
+    assert "Renamed 1 points" in result.stdout, result.output + result.stderr
+
+
 # migrate
 
 

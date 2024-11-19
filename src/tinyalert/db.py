@@ -92,6 +92,18 @@ class DB:
             for row in session.execute(query):
                 yield row[0]
 
+    def rename(self, old_metric_name: str, new_metric_name: str) -> int:
+        query = (
+            update(Point)
+            .values(metric_name=new_metric_name)
+            .where(Point.metric_name == old_metric_name)
+        )
+        count = 0
+        with self.session() as session:
+            count = session.execute(query).rowcount
+            session.commit()
+        return count
+
     def iter_all(self) -> Generator[Point, None, None]:
         query = select(Point)
         with self.session() as session:

@@ -341,6 +341,15 @@ def prune(ctx, keep_last, keep_within, keep_auto):
     click.echo(f"Pruned {count} points in total")
 
 
+@cli.command()
+@click.argument("from_name")
+@click.argument("to_name")
+@click.pass_context
+def rename(ctx, from_name, to_name):
+    count = api.rename(ctx.obj, from_name=from_name, to_name=to_name)
+    click.echo(f"Renamed {count} points from {from_name} to {to_name}")
+
+
 @cli.command(
     context_settings=dict(
         ignore_unknown_options=True,
